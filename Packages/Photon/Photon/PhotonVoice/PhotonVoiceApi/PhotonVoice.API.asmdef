@@ -1,0 +1,16 @@
+{
+    "name": "PhotonVoice.API",
+    "rootNamespace": "",
+    "references": [
+        "Photon Realtime MLAPI Transport"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

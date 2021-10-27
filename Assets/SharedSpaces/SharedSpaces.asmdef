@@ -1,0 +1,22 @@
+{
+    "name": "SharedSpaces",
+    "rootNamespace": "",
+    "references": [
+        "GUID:1491147abca9d7d4bb7105af628b223e",
+        "GUID:f64c9ebcd7899c3448a08dc9f9ddbe30",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:ea22cb6793c9ed449a2dd48035cef1f5",
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:1f4d40f5e4a05e64e9b596637963c0bc",
+        "GUID:b59fae9c7ebc1574e8690f2570b29d6f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
