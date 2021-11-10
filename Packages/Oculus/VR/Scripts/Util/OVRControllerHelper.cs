@@ -94,6 +94,9 @@ public class OVRControllerHelper : MonoBehaviour
 		m_modelOculusTouchRiftRightController.SetActive(false);
 		m_modelOculusTouchQuest2LeftController.SetActive(false);
 		m_modelOculusTouchQuest2RightController.SetActive(false);
+		
+		OVRManager.InputFocusLost += InputFocusLost;
+		OVRManager.InputFocusAcquired += InputFocusAcquired;
 	}
 
 	void Update()
@@ -155,5 +158,20 @@ public class OVRControllerHelper : MonoBehaviour
 			m_animator.SetFloat("Trigger", OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, m_controller));
 			m_animator.SetFloat("Grip", OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, m_controller));
 		}
+	}
+	
+	public void InputFocusLost()
+	{
+		m_modelOculusTouchQuestAndRiftSLeftController.SetActive(false);
+		m_modelOculusTouchQuestAndRiftSRightController.SetActive(false);
+		m_modelOculusTouchRiftLeftController.SetActive(false);
+		m_modelOculusTouchRiftRightController.SetActive(false);
+		m_modelOculusTouchQuest2LeftController.SetActive(false);
+		m_modelOculusTouchQuest2RightController.SetActive(false);
+	}
+
+	public void InputFocusAcquired()
+	{
+		m_prevControllerConnectedCached = false;
 	}
 }

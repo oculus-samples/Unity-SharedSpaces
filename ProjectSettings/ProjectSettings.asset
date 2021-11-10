@@ -127,9 +127,11 @@ PlayerSettings:
     16:10: 1
     16:9: 1
     Others: 1
-  bundleVersion: 
+  bundleVersion: 1.0
   preloadedAssets:
   - {fileID: 11400000, guid: 31617391d8a34d24981ec6aff26cd922, type: 2}
+  - {fileID: 11400000, guid: 795ffafb602dfed43930c9717cafb655, type: 2}
+  - {fileID: 9063536110420965024, guid: eb1fb9be53949b94982164119889ba87, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -154,7 +156,7 @@ PlayerSettings:
     iPhone: 0
     tvOS: 0
   overrideDefaultApplicationIdentifier: 1
-  AndroidBundleVersionCode: 5
+  AndroidBundleVersionCode: 2
   AndroidMinSdkVersion: 23
   AndroidTargetSdkVersion: 0
   AndroidPreferredInstallLocation: 0
@@ -240,8 +242,8 @@ PlayerSettings:
   AndroidTargetArchitectures: 2
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: '{inproject}: UnitySharedSpaces.keystore'
-  AndroidKeyaliasName: unitysharedspaces
+  AndroidKeystoreName:
+  AndroidKeyaliasName:
   AndroidBuildApkPerCpuArchitecture: 0
   AndroidTVCompatibility: 0
   AndroidIsGame: 1
