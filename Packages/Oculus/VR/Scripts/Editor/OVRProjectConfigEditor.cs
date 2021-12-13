@@ -72,14 +72,14 @@ public class OVRProjectConfigEditor : Editor
 			for (int i = 0; i < projectConfigTabStrs.Length; ++i)
 				projectConfigTabStrs[i] = ObjectNames.NicifyVariableName(projectConfigTabStrs[i]);
 		}
-		
+
 		selectedTab = (eProjectConfigTab)GUILayout.SelectionGrid((int)selectedTab, projectConfigTabStrs, 3, GUI.skin.button);
 		EditorGUILayout.Space(5);
 		bool hasModified = false;
 		switch (selectedTab)
 		{
 			case eProjectConfigTab.General:
-			
+
 				// Show overlay support option
 				EditorGUI.BeginDisabledGroup(true);
 				EditorGUILayout.Toggle(new GUIContent("Focus Aware (Required)",
@@ -110,19 +110,24 @@ public class OVRProjectConfigEditor : Editor
 					"If checked, application can work in both 6DoF and 3DoF modes. It's highly recommended to keep it unchecked unless your project strongly needs the 3DoF head tracking."),
 					ref projectConfig.allowOptional3DofHeadTracking, ref hasModified);
 
+				// Enable passthrough capability
+				OVREditorUtil.SetupBoolField(projectConfig, new GUIContent("Passthrough Capability Enabled",
+					"If checked, this application can use passthrough functionality. This option must be enabled at build time, otherwise initializing passthrough and creating passthrough layers in application scenes will fail."),
+					ref projectConfig.insightPassthroughEnabled, ref hasModified);
+
 				break;
 
 			case eProjectConfigTab.BuildSettings:
-			
+
 				OVREditorUtil.SetupBoolField(projectConfig, new GUIContent("Skip Unneeded Shaders",
 					"If checked, prevent building shaders that are not used by default to reduce time spent when building."),
 					ref projectConfig.skipUnneededShaders, ref hasModified,
 					"https://developer.oculus.com/documentation/unity/unity-strip-shaders/");
 
 				break;
-				
+
 			case eProjectConfigTab.Security:
-			
+
 				OVREditorUtil.SetupBoolField(projectConfig, "Disable Backups", ref projectConfig.disableBackups, ref hasModified,
 					"https://developer.android.com/guide/topics/data/autobackup#EnablingAutoBackup");
 				OVREditorUtil.SetupBoolField(projectConfig, "Enable NSC Configuration", ref projectConfig.enableNSCConfig, ref hasModified,
@@ -141,11 +146,9 @@ public class OVRProjectConfigEditor : Editor
 				OVREditorUtil.SetupBoolField(projectConfig, new GUIContent("Experimental Features Enabled",
 					"If checked, this application can use experimental features. Note that such features are for developer use only. This option must be disabled when submitting to the Oculus Store."),
 					ref projectConfig.experimentalFeaturesEnabled, ref hasModified);
-				EditorGUI.BeginDisabledGroup(!projectConfig.experimentalFeaturesEnabled);
-				OVREditorUtil.SetupBoolField(projectConfig, new GUIContent("Passthrough Capability Enabled",
-					"If checked, this application can use passthrough functionality. This option must be enabled at build time, otherwise initializing passthrough and creating passthrough layers in application scenes will fail."),
-					ref projectConfig.insightPassthroughEnabled, ref hasModified);
-				EditorGUI.EndDisabledGroup();
+
+				// Spatial Anchors Support
+				OVREditorUtil.SetupEnumField(projectConfig, "Spatial Anchors Support", ref projectConfig.spatialAnchorsSupport, ref hasModified);
 
 				break;
 

@@ -139,6 +139,11 @@ public class OVROverlayEditor : Editor
 		currentShapeIndex = EditorGUILayout.Popup(new GUIContent("Overlay Shape", "The shape of this overlay"), currentShapeIndex, selectableShapeNames);
 		overlay.currentOverlayShape = selectableShapeValues[currentShapeIndex];
 
+		EditorGUILayout.Space();
+
+		EditorGUILayout.LabelField("Layer Properties", EditorStyles.boldLabel);
+		overlay.useBicubicFiltering = EditorGUILayout.Toggle(new GUIContent("Bicubic Filtering",
+			"Whether this layer should use bicubic filtering. This can increase quality for small details on text and icons being viewed at farther distances."), overlay.useBicubicFiltering);
 
 		EditorGUILayout.Space();
 

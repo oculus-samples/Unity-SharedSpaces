@@ -44,7 +44,7 @@ public static class OVRPlugin
 #if OVRPLUGIN_UNSUPPORTED_PLATFORM
 	public static readonly System.Version wrapperVersion = _versionZero;
 #else
-	public static readonly System.Version wrapperVersion = OVRP_1_65_0.version;
+	public static readonly System.Version wrapperVersion = OVRP_1_67_0.version;
 #endif
 
 #if !OVRPLUGIN_UNSUPPORTED_PLATFORM
@@ -160,6 +160,8 @@ public static class OVRPlugin
 	{
 		/// Success
 		Success = 0,
+		Success_EventUnavailable = 1,
+		Success_Pending = 2,
 
 		/// Failure
 		Failure = -1000,
@@ -928,6 +930,7 @@ public static class OVRPlugin
 		NoAllocation = (1 << 5),
 		ProtectedContent = (1 << 6),
 		AndroidSurfaceSwapChain = (1 << 7),
+		BicubicFiltering = (1 << 14),
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
@@ -1325,6 +1328,11 @@ public static class OVRPlugin
 		Unknown = 0,
 		DisplayRefreshRateChanged = 1,
 
+		SpatialEntitySetComponentEnabledResult = 50,
+		SpatialEntityQueryResults = 51,
+		SpatialEntityQueryComplete = 52,
+		SpatialEntityStorageSaveResult = 53,
+		SpatialEntityStorageEraseResult = 54,
 	}
 
 	private const int EventDataBufferSize = 4000;
@@ -1363,6 +1371,84 @@ public static class OVRPlugin
 		public IntPtr TextureColorMapData;
 	}
 
+	public enum SpatialEntityComponentType
+	{
+		Locatable = 0,
+		Storable = 1
+	}
+
+	public enum SpatialEntityStorageLocation
+	{
+		Invalid = 0,
+		Local = 1
+	}
+
+	public enum SpatialEntityStoragePersistenceMode
+	{
+		Invalid = 0,
+		IndefiniteHighPri = 1
+	}
+
+	public enum SpatialEntityQueryActionType
+	{
+		Load = 0,
+	}
+
+	public enum SpatialEntityQueryType
+	{
+		Action = 0
+	}
+
+	public enum SpatialEntityQueryFilterType
+	{
+		None = 0,
+		Ids = 1
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct SpatialEntityAnchorCreateInfo
+	{
+		public TrackingOrigin BaseTracking;
+		public Posef PoseInSpace;
+		public double Time;
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct SpatialEntityUuid
+	{
+		public UInt64 Value_0;
+		public UInt64 Value_1;
+	}
+
+	public const int SpatialEntityFilterInfoIdsMaxSize = 1024;
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct SpatialEntityFilterInfoIds
+	{
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = SpatialEntityFilterInfoIdsMaxSize)]
+		public SpatialEntityUuid[] Ids;
+		public int NumIds;
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct SpatialEntityQueryInfo
+	{
+		public SpatialEntityQueryType QueryType;
+		public int MaxQuerySpaces;
+		public double Timeout;
+		public SpatialEntityStorageLocation Location;
+		public SpatialEntityQueryActionType ActionType;
+		public SpatialEntityQueryFilterType FilterType;
+		public SpatialEntityFilterInfoIds IdInfo;
+	}
+
+	public const int SpatialEntityMaxQueryResultsPerEvent = 128;
+
+	public struct SpatialEntityQueryResult
+	{
+		public UInt64 space;
+		public SpatialEntityUuid uuid;
+	}
 
 	public static bool initialized
 	{
@@ -3254,6 +3340,22 @@ public static class OVRPlugin
 #endif
 	}
 
+    public static Result GetInsightPassthroughInitializationState()
+    {
+#if OVRPLUGIN_UNSUPPORTED_PLATFORM
+        return Result.Failure_Unsupported;
+#else
+        if (version >= OVRP_1_66_0.version)
+        {
+            return OVRP_1_66_0.ovrp_GetInsightPassthroughInitializationState();
+        }
+        else
+        {
+            return Result.Failure_Unsupported;
+        }
+#endif
+    }
+
 	public static bool CreateInsightTriangleMesh(int layerId, Vector3[] vertices, int[] triangles, out ulong meshHandle)
 	{
 		meshHandle = 0;
@@ -4489,6 +4591,8 @@ public static class OVRPlugin
 			StabilizedPoV = 3,
 			RemoteDroneControlled = 4,
 			RemoteSpatialMapped = 5,
+			SpectatorMode = 6,
+			MobileMRC = 7,
 			EnumSize = 0x7fffffff
 		}
 
@@ -5075,6 +5179,30 @@ public static class OVRPlugin
 #endif
 		}
 
+		public static bool IsCastingToRemoteClient()
+		{
+#if OVRPLUGIN_UNSUPPORTED_PLATFORM
+			return false;
+#else
+			if (version >= OVRP_1_66_0.version)
+			{
+				Bool isCasting = Bool.False;
+				Result result = OVRP_1_66_0.ovrp_Media_IsCastingToRemoteClient(out isCasting);
+				if (result == Result.Success)
+				{
+					return isCasting == Bool.True;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else
+			{
+				return false;
+			}
+#endif
+		}
 	}
 
 	public static bool SetDeveloperMode(Bool active)
@@ -5577,6 +5705,184 @@ public static class OVRPlugin
 		if (version >= OVRP_1_57_0.version)
 		{
 			Result result = OVRP_1_57_0.ovrp_SetKeyboardOverlayUV(uv);
+			return (result == Result.Success);
+		}
+		else
+		{
+			return false;
+		}
+#endif
+	}
+
+	public static bool SpatialEntityCreateSpatialAnchor(SpatialEntityAnchorCreateInfo createInfo, ref UInt64 space) {
+#if OVRPLUGIN_UNSUPPORTED_PLATFORM
+		return false;
+#else
+		if (version >= OVRP_1_63_0.version)
+		{
+			Result result = OVRP_1_63_0.ovrp_CreateSpatialAnchor(ref createInfo, out space);
+			return (result == Result.Success);
+		}
+		else
+		{
+			return false;
+		}
+#endif
+	}
+
+	public static bool SpatialEntitySetComponentEnabled(ref UInt64 space, SpatialEntityComponentType componentType, bool enable, double timeout, ref UInt64 requestId) {
+#if OVRPLUGIN_UNSUPPORTED_PLATFORM
+		return false;
+#else
+		if (version >= OVRP_1_63_0.version)
+		{
+			Result result = OVRP_1_63_0.ovrp_SetComponentEnabled(ref space, componentType, ToBool(enable), timeout, out requestId);
+			return (result == Result.Success);
+		}
+		else
+		{
+			return false;
+		}
+#endif
+	}
+
+	public static bool SpatialEntityGetComponentEnabled(ref UInt64 space, SpatialEntityComponentType componentType, out bool enabled, out bool changePending) {
+		enabled = false;
+		changePending = false;
+
+#if OVRPLUGIN_UNSUPPORTED_PLATFORM
+		return false;
+#else
+		if (version >= OVRP_1_63_0.version)
+		{
+			Bool isEnabled, isPending;
+			Result result = OVRP_1_63_0.ovrp_GetComponentEnabled(ref space, componentType, out isEnabled, out isPending);
+			enabled = isEnabled == Bool.True;
+			changePending = isPending == Bool.True;
+			return (result == Result.Success);
+		}
+		else
+		{
+			return false;
+		}
+#endif
+	}
+
+  public static bool SpatialEntityEnumerateSupportedComponents(ref UInt64 space, out uint numSupportedComponents, SpatialEntityComponentType[] supportedComponents) {
+		numSupportedComponents = 0;
+
+#if OVRPLUGIN_UNSUPPORTED_PLATFORM
+		return false;
+#else
+		if (version >= OVRP_1_63_0.version)
+		{
+			Result result = OVRP_1_63_0.ovrp_EnumerateSupportedComponents(ref space, (uint)supportedComponents.Length, out numSupportedComponents, supportedComponents);
+			return (result == Result.Success);
+		}
+		else
+		{
+			return false;
+		}
+#endif
+  }
+
+	public static bool SpatialEntityQuerySpatialEntity(SpatialEntityQueryInfo queryInfo, ref UInt64 requestId) {
+#if OVRPLUGIN_UNSUPPORTED_PLATFORM
+		return false;
+#else
+		if (version >= OVRP_1_67_0.version)
+		{
+			Result result = OVRP_1_67_0.ovrp_QuerySpatialEntity(ref queryInfo, out requestId);
+			return (result == Result.Success);
+		}
+		else
+		{
+			return false;
+		}
+#endif
+	}
+
+	public static bool SpatialEntityTerminateSpatialEntityQuery(ref UInt64 requestId) {
+#if OVRPLUGIN_UNSUPPORTED_PLATFORM
+		return false;
+#else
+		if (version >= OVRP_1_63_0.version)
+		{
+			Result result = OVRP_1_63_0.ovrp_TerminateSpatialEntityQuery(ref requestId);
+			return (result == Result.Success);
+		}
+		else
+		{
+			return false;
+		}
+#endif
+	}
+
+	public static bool SpatialEntitySaveSpatialEntity(ref UInt64 space, SpatialEntityStorageLocation location, SpatialEntityStoragePersistenceMode mode, ref UInt64 requestId) {
+#if OVRPLUGIN_UNSUPPORTED_PLATFORM
+		return false;
+#else
+		if (version >= OVRP_1_63_0.version)
+		{
+			Result result = OVRP_1_63_0.ovrp_SaveSpatialEntity(ref space, location, mode, out requestId);
+			return (result == Result.Success);
+		}
+		else
+		{
+			return false;
+		}
+#endif
+	}
+
+	public static bool SpatialEntityEraseSpatialEntity(ref UInt64 space, SpatialEntityStorageLocation location, ref UInt64 requestId) {
+#if OVRPLUGIN_UNSUPPORTED_PLATFORM
+		return false;
+#else
+		if (version >= OVRP_1_63_0.version)
+		{
+			Result result = OVRP_1_63_0.ovrp_EraseSpatialEntity(ref space, location, out requestId);
+			return (result == Result.Success);
+		}
+		else
+		{
+			return false;
+		}
+#endif
+	}
+
+	public static Posef LocateSpace(ref UInt64 space, TrackingOrigin baseOrigin)
+	{
+#if OVRPLUGIN_UNSUPPORTED_PLATFORM
+		return Posef.identity;
+#else
+		if (version >= OVRP_1_64_0.version)
+		{
+			Posef location = Posef.identity;
+			Result result = OVRP_1_64_0.ovrp_LocateSpace(ref location, ref space, baseOrigin);
+			if (result == Result.Success)
+			{
+				return location;
+			}
+			else
+			{
+				return Posef.identity;
+			}
+		}
+		else
+		{
+			return Posef.identity;
+		}
+#endif
+	}
+
+	public static bool DestroySpace(ref UInt64 space)
+    {
+#if OVRPLUGIN_UNSUPPORTED_PLATFORM
+		return false;
+#else
+		if (version >= OVRP_1_65_0.version)
+		{
+			Result result = OVRP_1_65_0.ovrp_DestroySpace(ref space);
 			return (result == Result.Success);
 		}
 		else
@@ -6746,6 +7052,26 @@ public static class OVRPlugin
 	{
 		public static readonly System.Version version = new System.Version(1, 63, 0);
 
+		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern Result ovrp_CreateSpatialAnchor(ref SpatialEntityAnchorCreateInfo createInfo, out UInt64 space);
+
+		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern Result ovrp_SetComponentEnabled(ref UInt64 space, SpatialEntityComponentType componentType, Bool enable, double timeout, out UInt64 requestId);
+
+		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern Result ovrp_GetComponentEnabled(ref UInt64 space, SpatialEntityComponentType componentType, out Bool enabled, out Bool changePending);
+
+		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern Result ovrp_EnumerateSupportedComponents(ref UInt64 space, uint componentTypesCapacityInput, out uint componentTypesCountOutput, [MarshalAs(UnmanagedType.LPArray), In, Out] SpatialEntityComponentType[] componentTypes);
+
+		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern Result ovrp_TerminateSpatialEntityQuery(ref UInt64 requestId);
+
+		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern Result ovrp_SaveSpatialEntity(ref UInt64 space, SpatialEntityStorageLocation location, SpatialEntityStoragePersistenceMode mode, out UInt64 requestId);
+
+		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern Result ovrp_EraseSpatialEntity(ref UInt64 space, SpatialEntityStorageLocation location, out UInt64 requestId);
 
 		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern Result ovrp_InitializeInsightPassthrough();
@@ -6782,6 +7108,8 @@ public static class OVRPlugin
 		public static readonly System.Version version = new System.Version(1, 64, 0);
 
 
+		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern Result ovrp_LocateSpace(ref Posef location, ref UInt64 space, TrackingOrigin trackingOrigin);
 
 	}
 
@@ -6810,5 +7138,26 @@ public static class OVRPlugin
 		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern Result ovrp_KtxDestroy(IntPtr texture);
 
+		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern Result ovrp_DestroySpace(ref UInt64 space);
+	}
+
+	private static class OVRP_1_66_0
+	{
+		public static readonly System.Version version = new System.Version(1, 66, 0);
+
+        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Result ovrp_GetInsightPassthroughInitializationState();
+
+        [DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern Result ovrp_Media_IsCastingToRemoteClient(out Bool isCasting);
+	}
+
+	private static class OVRP_1_67_0
+	{
+		public static readonly System.Version version = new System.Version(1, 67, 0);
+
+		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern Result ovrp_QuerySpatialEntity(ref SpatialEntityQueryInfo queryInfo, out UInt64 requestId);
 	}
 }

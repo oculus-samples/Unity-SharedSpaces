@@ -19,10 +19,12 @@ namespace Assets.OVR.Scripts
 {
 	public class Record
 	{
+		public int sortOrder;
 		public string category;
 		public string message;
-		public Record(string cat, string msg)
+		public Record(int order, string cat, string msg)
 		{
+			sortOrder = order;
 			category = cat;
 			message = msg;
 		}
@@ -33,8 +35,8 @@ namespace Assets.OVR.Scripts
 		public float value;
 		public float min;
 		public float max;
-		public RangedRecord(string cat, string msg, float val, float minVal, float maxVal)
-			: base(cat, msg)
+		public RangedRecord(int order, string cat, string msg, float val, float minVal, float maxVal)
+			: base(order, cat, msg)
 		{
 			value = val;
 			min = minVal;
@@ -52,8 +54,8 @@ namespace Assets.OVR.Scripts
 		public bool editModeRequired;
 		public bool complete;
 
-		public FixRecord(string cat, string msg, FixMethodDelegate fix, UnityEngine.Object target, bool editRequired, string[] buttons)
-			: base(cat, msg)
+		public FixRecord(int order, string cat, string msg, FixMethodDelegate fix, UnityEngine.Object target, bool editRequired, string[] buttons)
+			: base(order, cat, msg)
 		{
 			buttonNames = buttons;
 			fixMethod = fix;

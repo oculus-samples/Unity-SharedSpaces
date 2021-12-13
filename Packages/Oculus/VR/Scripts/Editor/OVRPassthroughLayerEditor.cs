@@ -3,7 +3,7 @@ using UnityEngine;
 
 using ColorMapEditorType = OVRPassthroughLayer.ColorMapEditorType;
 
-[CustomEditor(typeof(OVRPassthroughLayer), false)]
+[CustomEditor(typeof(OVRPassthroughLayer))]
 public class OVRPassthroughLayerEditor : Editor
 {
 	public override void OnInspectorGUI()
@@ -46,6 +46,11 @@ public class OVRPassthroughLayerEditor : Editor
 			layer.colorMapEditorBrightness = EditorGUILayout.Slider("Brightness", layer.colorMapEditorBrightness, -1, 1);
 			layer.colorMapEditorPosterize = EditorGUILayout.Slider("Posterize", layer.colorMapEditorPosterize, 0, 1);
 			layer.colorMapEditorGradient = EditorGUILayout.GradientField("Colorize", layer.colorMapEditorGradient);
+		}
+
+		if (GUI.changed)
+		{
+			EditorUtility.SetDirty(layer);
 		}
 	}
 }

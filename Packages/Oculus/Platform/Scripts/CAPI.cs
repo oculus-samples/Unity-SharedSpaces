@@ -903,6 +903,12 @@ namespace Oculus.Platform
     public static extern ulong ovr_GroupPresence_Clear();
 
     [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern ulong ovr_GroupPresence_GetInvitableUsers(IntPtr options);
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern ulong ovr_GroupPresence_GetSentInvites();
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
     public static extern ulong ovr_GroupPresence_LaunchInvitePanel(IntPtr options);
 
     [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
@@ -924,6 +930,9 @@ namespace Oculus.Platform
 
     [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
     public static extern ulong ovr_GroupPresence_LaunchRosterPanel(IntPtr options);
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern ulong ovr_GroupPresence_SendInvites(UInt64[] userIDs, uint userIDLength);
 
     [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
     public static extern ulong ovr_GroupPresence_Set(IntPtr groupPresenceOptions);
@@ -1776,6 +1785,51 @@ namespace Oculus.Platform
 
     [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
     public static extern UInt64 ovr_Application_GetID(IntPtr obj);
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern IntPtr ovr_ApplicationInvite_GetDestination(IntPtr obj);
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern UInt64 ovr_ApplicationInvite_GetID(IntPtr obj);
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern bool ovr_ApplicationInvite_GetIsActive(IntPtr obj);
+
+    public static string ovr_ApplicationInvite_GetLobbySessionId(IntPtr obj) {
+      var result = StringFromNative(ovr_ApplicationInvite_GetLobbySessionId_Native(obj));
+      return result;
+    }
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl, EntryPoint="ovr_ApplicationInvite_GetLobbySessionId")]
+    private static extern IntPtr ovr_ApplicationInvite_GetLobbySessionId_Native(IntPtr obj);
+
+    public static string ovr_ApplicationInvite_GetMatchSessionId(IntPtr obj) {
+      var result = StringFromNative(ovr_ApplicationInvite_GetMatchSessionId_Native(obj));
+      return result;
+    }
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl, EntryPoint="ovr_ApplicationInvite_GetMatchSessionId")]
+    private static extern IntPtr ovr_ApplicationInvite_GetMatchSessionId_Native(IntPtr obj);
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern IntPtr ovr_ApplicationInvite_GetRecipient(IntPtr obj);
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern IntPtr ovr_ApplicationInviteArray_GetElement(IntPtr obj, UIntPtr index);
+
+    public static string ovr_ApplicationInviteArray_GetNextUrl(IntPtr obj) {
+      var result = StringFromNative(ovr_ApplicationInviteArray_GetNextUrl_Native(obj));
+      return result;
+    }
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl, EntryPoint="ovr_ApplicationInviteArray_GetNextUrl")]
+    private static extern IntPtr ovr_ApplicationInviteArray_GetNextUrl_Native(IntPtr obj);
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern UIntPtr ovr_ApplicationInviteArray_GetSize(IntPtr obj);
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern bool ovr_ApplicationInviteArray_HasNextPage(IntPtr obj);
 
     [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
     public static extern int ovr_ApplicationVersion_GetCurrentCode(IntPtr obj);
@@ -2883,6 +2937,9 @@ namespace Oculus.Platform
     public static extern IntPtr ovr_Message_GetAchievementUpdate(IntPtr obj);
 
     [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern IntPtr ovr_Message_GetApplicationInviteArray(IntPtr obj);
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
     public static extern IntPtr ovr_Message_GetApplicationVersion(IntPtr obj);
 
     [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
@@ -3091,6 +3148,9 @@ namespace Oculus.Platform
 
     [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
     public static extern IntPtr ovr_Message_GetSdkAccountArray(IntPtr obj);
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern IntPtr ovr_Message_GetSendInvitesResult(IntPtr obj);
 
     [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
     public static extern IntPtr ovr_Message_GetShareMediaResult(IntPtr obj);
@@ -3571,6 +3631,9 @@ namespace Oculus.Platform
 
     [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
     public static extern UIntPtr ovr_SdkAccountArray_GetSize(IntPtr obj);
+
+    [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
+    public static extern IntPtr ovr_SendInvitesResult_GetInvites(IntPtr obj);
 
     [DllImport(DLL_NAME, CallingConvention=CallingConvention.Cdecl)]
     public static extern ShareMediaStatus ovr_ShareMediaResult_GetStatus(IntPtr obj);

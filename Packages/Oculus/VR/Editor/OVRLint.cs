@@ -340,7 +340,9 @@ public class OVRLint : EditorWindow
 
 	static int FixRecordSorter(FixRecord record1, FixRecord record2)
 	{
-		if (record1.category != record2.category)
+		if (record1.sortOrder != record2.sortOrder)
+			return record1.sortOrder.CompareTo(record2.sortOrder);
+		else if (record1.category != record2.category)
 			return record1.category.CompareTo(record2.category);
 		else
 			return record1.complete.CompareTo(record2.complete);
@@ -348,8 +350,13 @@ public class OVRLint : EditorWindow
 
 	static void AddFix(eRecordType recordType, string category, string message, FixMethodDelegate method, UnityEngine.Object target, bool editModeRequired, params string[] buttons)
 	{
+		AddFix(recordType, 0/*sortOrder*/, category, message, method, target, editModeRequired, buttons);
+	}
+
+	static void AddFix(eRecordType recordType, int sortOrder, string category, string message, FixMethodDelegate method, UnityEngine.Object target, bool editModeRequired, params string[] buttons)
+	{
 		OVRPlugin.SendEvent("perf_lint_add_fix", category);
-		var fixRecord = new FixRecord(category, message, method, target, editModeRequired, buttons);
+		var fixRecord = new FixRecord(sortOrder, category, message, method, target, editModeRequired, buttons);
 		switch (recordType)
 		{
 			case eRecordType.StaticCommon: mRecordsStaticCommon.Add(fixRecord); break;
@@ -365,6 +372,10 @@ public class OVRLint : EditorWindow
 		{
 			AddFix(eRecordType.StaticCommon, "General", OVRManager.UnityAlphaOrBetaVersionWarningMessage, null, null, false);
 		}
+
+#if USING_XR_SDK_OPENXR
+		AddFix(eRecordType.StaticCommon, -9999, "Unity OpenXR Plugin Detected", "Unity OpenXR Plugin should NOT be used in production when developing Oculus apps. Please uninstall the package, and install the Oculus XR Plugin from the Package Manager.\nWhen using the Oculus XR Plugin, you can enable OpenXR backend for Oculus through the 'Oculus -> Tools -> OpenXR' menu.", null, null, false);
+#endif
 
 		if (QualitySettings.anisotropicFiltering != AnisotropicFiltering.Enable && QualitySettings.anisotropicFiltering != AnisotropicFiltering.ForceEnable)
 		{

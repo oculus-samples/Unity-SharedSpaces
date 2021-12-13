@@ -129,10 +129,14 @@ namespace Oculus.Platform
       CloudStorage_Save                                   = 0x4BBB5C2E,
       Entitlement_GetIsViewerEntitled                     = 0x186B58B1,
       GroupPresence_Clear                                 = 0x6DAA9CC3,
+      GroupPresence_GetInvitableUsers                     = 0x234BC3F1,
+      GroupPresence_GetNextApplicationInviteArrayPage     = 0x04F8C0F2,
+      GroupPresence_GetSentInvites                        = 0x08260AB1,
       GroupPresence_LaunchInvitePanel                     = 0x0F9ECF9F,
       GroupPresence_LaunchMultiplayerErrorDialog          = 0x2955AF24,
       GroupPresence_LaunchRejoinDialog                    = 0x1577036F,
       GroupPresence_LaunchRosterPanel                     = 0x35728882,
+      GroupPresence_SendInvites                           = 0x0DCBD364,
       GroupPresence_Set                                   = 0x675F5C24,
       GroupPresence_SetDestination                        = 0x4C5B268A,
       GroupPresence_SetIsJoinable                         = 0x2A8F1055,
@@ -372,6 +376,7 @@ namespace Oculus.Platform
     public virtual AchievementDefinitionList GetAchievementDefinitions() { return null; }
     public virtual AchievementProgressList GetAchievementProgressList() { return null; }
     public virtual AchievementUpdate GetAchievementUpdate() { return null; }
+    public virtual ApplicationInviteList GetApplicationInviteList() { return null; }
     public virtual ApplicationVersion GetApplicationVersion() { return null; }
     public virtual AssetDetails GetAssetDetails() { return null; }
     public virtual AssetDetailsList GetAssetDetailsList() { return null; }
@@ -434,6 +439,7 @@ namespace Oculus.Platform
     public virtual RoomInviteNotificationList GetRoomInviteNotificationList() { return null; }
     public virtual RoomList GetRoomList() { return null; }
     public virtual SdkAccountList GetSdkAccountList() { return null; }
+    public virtual SendInvitesResult GetSendInvitesResult() { return null; }
     public virtual ShareMediaResult GetShareMediaResult() { return null; }
     public virtual string GetString() { return null; }
     public virtual SystemVoipState GetSystemVoipState() { return null; }
@@ -472,6 +478,11 @@ namespace Oculus.Platform
         case Message.MessageType.Achievements_AddFields:
         case Message.MessageType.Achievements_Unlock:
           message = new MessageWithAchievementUpdate(messageHandle);
+          break;
+
+        case Message.MessageType.GroupPresence_GetNextApplicationInviteArrayPage:
+        case Message.MessageType.GroupPresence_GetSentInvites:
+          message = new MessageWithApplicationInviteList(messageHandle);
           break;
 
         case Message.MessageType.Application_GetVersion:
@@ -767,6 +778,10 @@ namespace Oculus.Platform
           message = new MessageWithSdkAccountList(messageHandle);
           break;
 
+        case Message.MessageType.GroupPresence_SendInvites:
+          message = new MessageWithSendInvitesResult(messageHandle);
+          break;
+
         case Message.MessageType.Media_ShareToFacebook:
           message = new MessageWithShareMediaResult(messageHandle);
           break;
@@ -798,6 +813,7 @@ namespace Oculus.Platform
           message = new MessageWithUserAndRoomList(messageHandle);
           break;
 
+        case Message.MessageType.GroupPresence_GetInvitableUsers:
         case Message.MessageType.Room_GetInvitableUsers:
         case Message.MessageType.Room_GetInvitableUsers2:
         case Message.MessageType.User_GetLoggedInUserFriends:
@@ -926,6 +942,18 @@ namespace Oculus.Platform
       var msg = CAPI.ovr_Message_GetNativeMessage(c_message);
       var obj = CAPI.ovr_Message_GetAchievementUpdate(msg);
       return new AchievementUpdate(obj);
+    }
+
+  }
+  public class MessageWithApplicationInviteList : Message<ApplicationInviteList>
+  {
+    public MessageWithApplicationInviteList(IntPtr c_message) : base(c_message) { }
+    public override ApplicationInviteList GetApplicationInviteList() { return Data; }
+    protected override ApplicationInviteList GetDataFromMessage(IntPtr c_message)
+    {
+      var msg = CAPI.ovr_Message_GetNativeMessage(c_message);
+      var obj = CAPI.ovr_Message_GetApplicationInviteArray(msg);
+      return new ApplicationInviteList(obj);
     }
 
   }
@@ -1694,6 +1722,18 @@ namespace Oculus.Platform
       var msg = CAPI.ovr_Message_GetNativeMessage(c_message);
       var obj = CAPI.ovr_Message_GetSdkAccountArray(msg);
       return new SdkAccountList(obj);
+    }
+
+  }
+  public class MessageWithSendInvitesResult : Message<SendInvitesResult>
+  {
+    public MessageWithSendInvitesResult(IntPtr c_message) : base(c_message) { }
+    public override SendInvitesResult GetSendInvitesResult() { return Data; }
+    protected override SendInvitesResult GetDataFromMessage(IntPtr c_message)
+    {
+      var msg = CAPI.ovr_Message_GetNativeMessage(c_message);
+      var obj = CAPI.ovr_Message_GetSendInvitesResult(msg);
+      return new SendInvitesResult(obj);
     }
 
   }
