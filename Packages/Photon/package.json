@@ -1,7 +1,9 @@
 {
   "name": "com.photon.voice2",
   "displayName": "Photon Voice 2",
-  "version": "2.27.0",
+  "version": "2.28.2",
   "unity": "2018.4",
+  "unityRelease": "22f1",
+  "description": "Note: Contains breaking changes to existing Photon Voice Classic (v1) projects.\nAdding Photon Voice to your app is a breeze no matter if it is a multiplayer game or VR/AR/MR app.\nPhoton Voice 2:\n Works with PUN2 or decoupled from it in order to use it with Photon Realtime, Photon Bolt or standalone\n Improved API and Unity components\n Easier integration with PUN2 (see DemoVoicePun)\n Improved audio quality with echo cancellation, noise suppression, automatic gain control, etc. (see DemoVoiceUI for testing)\n New and updated demos\n PUN2 demos and PhotonChatAPI included \n attach audio sources to  3D objects in Unity and freely place the audiostreams, e.g. in a virtual world or a FPS\n best possible audio quality due to state-of-the-art Opus codec\n works 100% across different networks, even in mobile networks\n scales automatically in Photon Cloud's global hosting centers in US, Europe, Asia & Australia to any amount of concurrent users you need\n can be used with any multiplayer engine\n list of supported platforms (https://doc.photonengine.com/en-us/voice/current/getting-started/voice-intro#supported_platforms) \nAll for FREE including hosting in our Photon Cloud for up to 20 CCU.\nFor details please read our Photon Voice documentation (https://doc.photonengine.com/en-us/voice/v2/getting-started/voice-for-pun) or visit our product website.",
   "samples": []
 }

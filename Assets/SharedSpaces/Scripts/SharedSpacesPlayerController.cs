@@ -1,7 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 
 using UnityEngine;
-using MLAPI;
+using Unity.Netcode;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
@@ -82,7 +82,7 @@ public class SharedSpacesPlayerController : NetworkBehaviour
         _fallTimeoutDelta = FallTimeout;
     }
 
-    public override void NetworkStart()
+    public override void OnNetworkSpawn()
     {
         enabled = IsOwner;
         GetComponent<PlayerInput>().enabled = IsOwner;

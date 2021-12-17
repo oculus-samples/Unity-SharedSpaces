@@ -2,7 +2,7 @@
     "name": "PhotonVoice.Editor",
     "rootNamespace": "",
     "references": [
-        "Photon Realtime MLAPI Transport",
+        "Photon Realtime Transport for Netcode for GameObjects",
         "PhotonVoice",
         "PhotonVoice.API"
     ],

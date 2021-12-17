@@ -3,56 +3,23 @@
     using System.Linq;
 
     // this was added for backwards compatibility
-    public class AudioInEnumeratorEx : Voice.AudioInEnumerator
+    public static class AudioInEnumeratorEx
     {
-        public AudioInEnumeratorEx(ILogger logger) : base(logger)
+        public static bool IDIsValid(this IDeviceEnumerator en, int id)
         {
+            return en.Any(d => d.IDInt == id);
         }
 
-        public int Count
+        public static string NameAtIndex(this IDeviceEnumerator en, int index)
         {
-            get
-            {
-                return this.Devices.Count();
-            }
+            return en.ElementAtOrDefault(index).Name;
         }
 
-        public bool IDIsValid(int id)
+        public static int IDAtIndex(this IDeviceEnumerator en, int index)
         {
-            foreach (var d in this.Devices)
+            if (index >= 0 && index < en.Count())
             {
-                if (d.IDInt == id)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public string NameAtIndex(int index)
-        {
-            int i = 0;
-            foreach (var d in this.Devices)
-            {
-                if (i == index)
-                {
-                    return d.Name;
-                }
-                i++;
-            }
-            return string.Empty;
-        }
-
-        public int IDAtIndex(int index)
-        {
-            int i = 0;
-            foreach (var d in this.Devices)
-            {
-                if (i == index)
-                {
-                    return d.IDInt;
-                }
-                i++;
+                return en.ElementAt(index).IDInt;
             }
             return -1;
         }

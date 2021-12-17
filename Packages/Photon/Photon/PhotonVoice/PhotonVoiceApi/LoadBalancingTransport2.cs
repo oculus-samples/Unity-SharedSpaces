@@ -77,11 +77,10 @@ namespace Photon.Voice
             }
         }
 
-
         internal void onVoiceFrameEvent(object content0, int channelId, int playerId, int localPlayerId)
         {
-            byte[] content = null;
-            int contentLength = 0;
+            byte[] content;
+            int contentLength;
             int sliceOffset = 0;
             ByteArraySlice slice = content0 as ByteArraySlice;
             if (slice != null)
@@ -114,15 +113,15 @@ namespace Photon.Voice
                 FrameBuffer buffer;
                 if (slice != null)
                 {
-                    buffer = new FrameBuffer(slice.Buffer, slice.Offset + dataOffset, contentLength - dataOffset, flags, () => slice.Release());
+                    buffer = new FrameBuffer(slice.Buffer, slice.Offset + dataOffset, contentLength - dataOffset, flags, slice);
                 }
                 else
                 {
                     buffer = new FrameBuffer(content, dataOffset, contentLength - dataOffset, flags, null);
                 }
                 
-
-                this.voiceClient.onFrame(channelId, playerId, voiceId, evNumber, buffer, playerId == localPlayerId);
+                this.voiceClient.onFrame(channelId, playerId, voiceId, evNumber, ref buffer, playerId == localPlayerId);
+                buffer.Release();
             }
         }
     }

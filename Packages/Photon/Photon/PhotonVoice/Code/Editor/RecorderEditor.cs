@@ -257,7 +257,7 @@ namespace Photon.Voice.Unity.Editor
                                 #if PHOTON_MICROPHONE_ENUMERATOR
                                 if (this.recorder.MicrophonesEnumerator.IsSupported)
                                 {
-                                    if (!this.recorder.MicrophonesEnumerator.Devices.Any())
+                                    if (!this.recorder.MicrophonesEnumerator.Any())
                                     {
                                         EditorGUILayout.HelpBox("No microphone device found", MessageType.Error);
                                     }
@@ -480,7 +480,7 @@ namespace Photon.Voice.Unity.Editor
                                 #if PHOTON_MICROPHONE_ENUMERATOR
                                 if (this.recorder.MicrophonesEnumerator.IsSupported)
                                 {
-                                    if (!this.recorder.MicrophonesEnumerator.Devices.Any())
+                                    if (!this.recorder.MicrophonesEnumerator.Any())
                                     {
                                         EditorGUILayout.HelpBox("No microphone device found", MessageType.Error);
                                     }
@@ -645,7 +645,7 @@ namespace Photon.Voice.Unity.Editor
             if (this.recorder.MicrophonesEnumerator.IsSupported)
             {
                 this.recorder.MicrophonesEnumerator.Refresh();
-                int count = this.recorder.MicrophonesEnumerator.Devices.Count();
+                int count = this.recorder.MicrophonesEnumerator.Count();
                 if (count == 0)
                 {
                     this.recorder.PhotonMicrophoneDeviceId = -1;
@@ -658,10 +658,10 @@ namespace Photon.Voice.Unity.Editor
                     this.photonDeviceNames = new string[count];
                     this.photonDeviceIDs = new int[count];
                     int i = 0;
-                    foreach (DeviceInfo deviceInfo in this.recorder.MicrophonesEnumerator.Devices)
+                    foreach (DeviceInfo deviceInfo in this.recorder.MicrophonesEnumerator)
                     {
                         this.photonDeviceIDs[i] = deviceInfo.IDInt;
-                        this.photonDeviceNames[i] = string.Format("{0} - {1} [{2}]", i, deviceInfo.Name, deviceInfo.IDInt);
+                        this.photonDeviceNames[i] = string.Format("{0} - {1} [{2}]", i, deviceInfo.Name.Replace('/', '_'), deviceInfo.IDInt);
                         i++;
                     }
                     this.photonDeviceIndex = Mathf.Clamp(Array.IndexOf(this.photonDeviceIDs, this.recorder.PhotonMicrophoneDeviceId), 0, count - 1);

@@ -2,7 +2,7 @@
 
 using UnityEngine;
 using TMPro;
-using MLAPI;
+using Unity.Netcode;
 
 public class SharedSpacesPortal : MonoBehaviour
 {

@@ -2,7 +2,7 @@
 #define DLL_IMPORT_INTERNAL
 #endif
 
-#if NEEDED//UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_WSA
+#if NONE //UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_WSA
 // opus.* lib built from original opus repo 
 #else
 #define OPUS_EGPV // opus_egpv.* lib with interop helpers (we still may use such libs for the platforms where helpers are not required)
@@ -21,11 +21,9 @@
 // #define OPUS_EGPV
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Runtime.InteropServices;
 using POpusCodec.Enums;
+using Photon.Voice;
 
 namespace POpusCodec
 {
@@ -85,10 +83,10 @@ namespace POpusCodec
         private static extern OpusStatusCode opus_decoder_init(IntPtr st, SamplingRate Fs, Channels channels);
 
         [DllImport(lib_name, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern int opus_decode(IntPtr st, byte[] data, int len, short[] pcm, int frame_size, int decode_fec);
+        private static extern int opus_decode(IntPtr st, IntPtr data, int len, short[] pcm, int frame_size, int decode_fec);
 
         [DllImport(lib_name, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern int opus_decode_float(IntPtr st, byte[] data, int len, float[] pcm, int frame_size, int decode_fec);
+        private static extern int opus_decode_float(IntPtr st, IntPtr data, int len, float[] pcm, int frame_size, int decode_fec);
 
         //        [DllImport(import_name, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         //        private static extern int opus_decode(IntPtr st, IntPtr data, int len, short[] pcm, int frame_size, int decode_fec);
@@ -97,7 +95,7 @@ namespace POpusCodec
         //        private static extern int opus_decode_float(IntPtr st, IntPtr data, int len, float[] pcm, int frame_size, int decode_fec);
 
         [DllImport(lib_name, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        public static extern int opus_packet_get_bandwidth(byte[] data);
+        public static extern int opus_packet_get_bandwidth(IntPtr data);
 
         [DllImport(lib_name, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern int opus_packet_get_nb_channels(byte[] data);
@@ -242,21 +240,12 @@ namespace POpusCodec
             Marshal.FreeHGlobal(st);
         }
 
-        public static int opus_decode(IntPtr st, byte[] data, short[] pcm, int decode_fec, int channels)
+        public static int opus_decode(IntPtr st, FrameBuffer data, short[] pcm, int decode_fec, int channels)
         {
             if (st == IntPtr.Zero)
                 throw new ObjectDisposedException("OpusDecoder");
 
-            int numSamplesDecoded = 0;
-
-            if (data != null)
-            {
-                numSamplesDecoded = opus_decode(st, data, data.Length, pcm, pcm.Length / channels, decode_fec);
-            }
-            else
-            {
-                numSamplesDecoded = opus_decode(st, null, 0, pcm, pcm.Length / channels, decode_fec);
-            }
+            int numSamplesDecoded = opus_decode(st, data.Ptr, data.Length, pcm, pcm.Length / channels, decode_fec);
 
             if (numSamplesDecoded == (int)OpusStatusCode.InvalidPacket)
                 return 0;
@@ -269,21 +258,12 @@ namespace POpusCodec
             return numSamplesDecoded;
         }
 
-        public static int opus_decode(IntPtr st, byte[] data, float[] pcm, int decode_fec, int channels)
+        public static int opus_decode(IntPtr st, FrameBuffer data, float[] pcm, int decode_fec, int channels)
         {
             if (st == IntPtr.Zero)
                 throw new ObjectDisposedException("OpusDecoder");
 
-            int numSamplesDecoded = 0;
-
-            if (data != null)
-            {
-                numSamplesDecoded = opus_decode_float(st, data, data.Length, pcm, pcm.Length / channels, decode_fec);
-            }
-            else
-            {
-                numSamplesDecoded = opus_decode_float(st, null, 0, pcm, pcm.Length / channels, decode_fec);
-            }
+            int numSamplesDecoded = opus_decode_float(st, data.Ptr, data.Length, pcm, pcm.Length / channels, decode_fec);
 
             if (numSamplesDecoded == (int)OpusStatusCode.InvalidPacket)
                 return 0;

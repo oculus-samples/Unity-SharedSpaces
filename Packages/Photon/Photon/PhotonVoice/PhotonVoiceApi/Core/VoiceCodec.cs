@@ -61,7 +61,11 @@ namespace Photon.Voice
         /// <summary>If not null, the object is in invalid state.</summary>
         string Error { get; }
         /// <summary>Consumes the given encoded data.</summary>
-        void Input(byte[] buf, FrameFlags flags);
+        /// <remarks>
+        /// The callee can call buf.Retain() to prevent the caller from disposing the buffer.
+        /// In this case, the callee should call buf.Release() when buffer is no longer needed.
+        /// </remarks>
+        void Input(ref FrameBuffer buf);
     }
 
     /// <summary>Interface for an decoder which outputs data via explicit call.</summary>
@@ -100,21 +104,28 @@ namespace Photon.Voice
     }
 
     /// <summary>Exception thrown if an unsupported codec is encountered.</summary>
-    /// <remarks>PhotonVoice currently only supports one Codec, <see cref="Codec.AudioOpus"></see>.
     class UnsupportedCodecException : Exception
     {
         /// <summary>Create a new UnsupportedCodecException.</summary>
         /// <param name="info">The info prepending standard message.</param>
         /// <param name="codec">The codec actually encountered.</param>
         /// <param name="logger">Loogger.</param>
-        public UnsupportedCodecException(string info, Codec codec, ILogger logger) : base("[PV] " + info + ": unsupported codec: " + codec) { }
+        public UnsupportedCodecException(string info, Codec codec) : base("[PV] " + info + ": unsupported codec: " + codec) { }
+    }
+
+    /// <summary>Exception thrown if an unsupported platform is encountered.</summary>
+    class UnsupportedPlatformException : Exception
+    {
+        /// <summary>Create a new UnsupportedPlatformException.</summary>
+        /// <param name="info">The info prepending standard message.</param>
+        public UnsupportedPlatformException(string subject, string platform = null) : base("[PV] " + subject + " does not support " + (platform == null ? "current" : platform) + " platform") { }
     }
 
     /// <summary>Enum for Media Codecs supported by PhotonVoice.</summary>
     /// <remarks>Transmitted in <see cref="VoiceInfo"></see>. Do not change the values of this Enum!</remarks>
     public enum Codec
     {
-		Raw = 1,
+        Raw = 1,
         /// <summary>OPUS audio</summary>
         AudioOpus = 11,
 #if PHOTON_VOICE_VIDEO_ENABLE
@@ -145,21 +156,47 @@ namespace Photon.Voice
         Rotate270 = 270,  // Rotate 270 degrees clockwise.
     }
 
-    public enum Flip
+    public struct Flip
     {
-        Undefined,
-        None,
-        Vertical,
-        Horizontal
+        public bool IsVertical { get; private set; }
+        public bool IsHorizontal { get; private set; }
+
+        public static bool operator ==(Flip f1, Flip f2)
+        {
+            return f1.IsVertical == f2.IsVertical && f1.IsHorizontal == f2.IsHorizontal;
+        }
+
+        public static bool operator !=(Flip f1, Flip f2)
+        {
+            return f1.IsVertical != f2.IsVertical || f1.IsHorizontal != f2.IsHorizontal;
+        }
+
+        // trivial implementation to avoid warnings CS0660 and CS0661 about missing overrides when == and != defined 
+        public override bool Equals(object obj) { return base.Equals(obj); } 
+        public override int GetHashCode() { return base.GetHashCode(); }
+
+        public static Flip operator *(Flip f1, Flip f2)
+        {
+            return new Flip
+            {
+                IsVertical = f1.IsVertical != f2.IsVertical,
+                IsHorizontal = f1.IsHorizontal != f2.IsHorizontal,
+            };
+        }
+
+        public static Flip None;
+        public static Flip Vertical = new Flip() { IsVertical = true };
+        public static Flip Horizontal = new Flip() { IsHorizontal = true };
+        public static Flip Both = Vertical * Horizontal;
     }
 
     // Image buffer pool support
     public class ImageBufferInfo
     {
-        public int Width { get; private set; }
-        public int Height { get; private set; }
-        public int[] Stride { get; private set; }
-        public ImageFormat Format { get; private set; }
+        public int Width { get; }
+        public int Height { get; }
+        public int[] Stride { get; }
+        public ImageFormat Format { get; }
         public Rotation Rotation { get; set; }
         public Flip Flip { get; set; }
         public ImageBufferInfo(int width, int height, int[] stride, ImageFormat format)
@@ -178,7 +215,7 @@ namespace Photon.Voice
             Info = info;
             Planes = new IntPtr[info.Stride.Length];
         }
-        public ImageBufferInfo Info { get; protected set; }
+        public ImageBufferInfo Info { get; }
         public IntPtr[] Planes { get; protected set; }
 
         // Release resources for dispose or reuse.

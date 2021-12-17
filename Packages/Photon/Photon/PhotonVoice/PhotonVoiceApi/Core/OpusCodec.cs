@@ -33,7 +33,7 @@ namespace Photon.Voice
                 else if (typeof(B) == typeof(short[]))
                     return new EncoderShort(i, logger);
                 else
-                    throw new UnsupportedCodecException("Factory.CreateEncoder<" + typeof(B) + ">", i.Codec, logger);
+                    throw new UnsupportedCodecException("Factory.CreateEncoder<" + typeof(B) + ">", i.Codec);
             }
         }
 
@@ -47,7 +47,7 @@ namespace Photon.Voice
                 else if (x[0].GetType() == typeof(short))
                     return new EncoderShort(i, logger);
                 else
-                    throw new UnsupportedCodecException("EncoderFactory.Create<" + x[0].GetType() + ">", i.Codec, logger);
+                    throw new UnsupportedCodecException("EncoderFactory.Create<" + x[0].GetType() + ">", i.Codec);
             }
         }
 
@@ -199,20 +199,20 @@ namespace Photon.Voice
             }
 
             FrameOut<T> frameOut = new FrameOut<T>(null, false);
-            public void Input(byte[] buf, FrameFlags flags)
+            public void Input(ref FrameBuffer buf)
             {
                 if (Error == null)
                 {
-                    bool endOfStream = (flags & FrameFlags.EndOfStream) != 0;
+                    bool endOfStream = (buf.Flags & FrameFlags.EndOfStream) != 0;
                     if (endOfStream)
                     {
                         T[] res1 = null;
                         T[] res2;
                         // EndOfStream packet may have data
                         // normally we do not send null with EndOfStream flag, but null is still valid here
-                        if (buf == null && buf.Length > 0)
+                        if (buf.Array == null && buf.Length > 0)
                         {
-                            res1 = decoder.DecodePacket(buf);
+                            res1 = decoder.DecodePacket(ref buf);
                         }
                         // flush decoder
                         res2 = decoder.DecodeEndOfStream();
@@ -236,7 +236,7 @@ namespace Photon.Voice
                     else
                     {
                         T[] res;
-                        res = decoder.DecodePacket(buf);
+                        res = decoder.DecodePacket(ref buf);
                         if (res.Length != 0)
                         {
                             output(frameOut.Set(res, false));

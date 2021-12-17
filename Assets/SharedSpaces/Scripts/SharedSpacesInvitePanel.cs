@@ -2,7 +2,7 @@
 
 using UnityEngine;
 using UnityEngine.UI;
-using MLAPI;
+using Unity.Netcode;
 using Oculus.Platform;
 
 public class SharedSpacesInvitePanel : MonoBehaviour

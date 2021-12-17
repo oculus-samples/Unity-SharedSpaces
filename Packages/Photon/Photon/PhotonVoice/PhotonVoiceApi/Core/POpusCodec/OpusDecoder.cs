@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using POpusCodec.Enums;
 using System.Runtime.InteropServices;
+using Photon.Voice;
 
 namespace POpusCodec
 {
@@ -60,13 +58,13 @@ namespace POpusCodec
         }
         
         private T[] buffer; // allocated for exactly 1 frame size as first valid frame received
-        private byte[] prevPacketData;
+        private FrameBuffer prevPacketData;
         bool prevPacketInvalid; // maybe false if prevPacket us null
 
         // pass null to indicate packet loss
-        public T[] DecodePacket(byte[] packetData)
+        public T[] DecodePacket(ref FrameBuffer packetData)
         {
-            if (this.buffer == null && packetData == null)
+            if (this.buffer == null && packetData.Array == null)
             {
                 return EmptyBuffer;
             }
@@ -79,14 +77,14 @@ namespace POpusCodec
                 this.buffer = new T[MaxFrameSize * _channelCount];                
             }
 
-            bool packetInvalid = false;
-            if (packetData == null)
+            bool packetInvalid;
+            if (packetData.Array == null)
             {
                 packetInvalid = true;
             }
             else
             {
-                int bandwidth = Wrapper.opus_packet_get_bandwidth(packetData);
+                int bandwidth = Wrapper.opus_packet_get_bandwidth(packetData.Ptr);
                 packetInvalid = bandwidth == (int)OpusStatusCode.InvalidPacket;
             }
 
@@ -99,8 +97,8 @@ namespace POpusCodec
                     {
                         // no fec data, conceal previous frame
                         numSamplesDecoded = TisFloat ?
-                            Wrapper.opus_decode(_handle, null, this.buffer as float[], 0, _channelCount) :
-                            Wrapper.opus_decode(_handle, null, this.buffer as short[], 0, _channelCount);
+                            Wrapper.opus_decode(_handle, new FrameBuffer(), this.buffer as float[], 0, _channelCount) :
+                            Wrapper.opus_decode(_handle, new FrameBuffer(), this.buffer as short[], 0, _channelCount);
                         //UnityEngine.Debug.Log("======================= Conceal");
                     }
                     else
@@ -115,14 +113,20 @@ namespace POpusCodec
                 else
                 {
                     // decode previous frame
-                    if (prevPacketData != null) // is null on 1st call
+                    if (prevPacketData.Array != null) // is null on 1st call
                     {
                         numSamplesDecoded = TisFloat ?
                             Wrapper.opus_decode(_handle, prevPacketData, this.buffer as float[], 0, _channelCount) :
-                            Wrapper.opus_decode(_handle, prevPacketData, this.buffer as short[], 0, _channelCount);
+                            Wrapper.opus_decode(_handle, prevPacketData, this.buffer as short[], 0, _channelCount);                        
+                        // prevPacketData is disposed below before copying packetData to it
                         regularDecode = true;
                     }
                 }
+
+                prevPacketData.Release();
+                prevPacketData = packetData;
+                packetData.Retain();
+                prevPacketInvalid = packetInvalid;
             }
             else
             {
@@ -134,9 +138,6 @@ namespace POpusCodec
                 regularDecode = true;
                 #pragma warning restore 162
             }
-
-            prevPacketData = packetData;
-            prevPacketInvalid = packetInvalid;
 
             if (numSamplesDecoded == 0)
                 return EmptyBuffer;
@@ -169,14 +170,14 @@ namespace POpusCodec
                 }
 
                 // decode previous frame
-                if (prevPacketData != null) // is null on 1st call
+                if (prevPacketData.Array != null) // is null on 1st call
                 {
                     numSamplesDecoded = TisFloat ?
                     Wrapper.opus_decode(_handle, prevPacketData, this.buffer as float[], 1, _channelCount) :
                     Wrapper.opus_decode(_handle, prevPacketData, this.buffer as short[], 1, _channelCount);
                 }
-
-                prevPacketData = null;
+                prevPacketData.Release();
+                prevPacketData = new FrameBuffer();
                 prevPacketInvalid = false;
 
                 if (numSamplesDecoded == 0)
@@ -199,7 +200,8 @@ namespace POpusCodec
             }
             else
             {
-                prevPacketData = null;
+                prevPacketData.Release();
+                prevPacketData = new FrameBuffer();
                 prevPacketInvalid = false;
                 return EmptyBuffer;
             }
@@ -207,6 +209,7 @@ namespace POpusCodec
 
         public void Dispose()
         {
+            prevPacketData.Release();
             if (_handle != IntPtr.Zero)
             {
                 Wrapper.opus_decoder_destroy(_handle);

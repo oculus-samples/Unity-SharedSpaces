@@ -1,15 +1,14 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 
 using UnityEngine;
-using MLAPI;
-using MLAPI.NetworkVariable;
-using MLAPI.Messaging;
+using Unity.Collections;
+using Unity.Netcode;
 
 public class SharedSpacesPlayerState : NetworkBehaviour
 {
-    public NetworkVariableColor color = new NetworkVariableColor(new NetworkVariableSettings { WritePermission = NetworkVariablePermission.ServerOnly });
-    public NetworkVariableString username = new NetworkVariableString(new NetworkVariableSettings { WritePermission = NetworkVariablePermission.ServerOnly, SendTickrate = -1.0f });
-    public NetworkVariableBool masterclient = new NetworkVariableBool(new NetworkVariableSettings { WritePermission = NetworkVariablePermission.OwnerOnly });
+    public NetworkVariable<Color> color = new NetworkVariable<Color>();
+    public NetworkVariable<FixedString128Bytes> username = new NetworkVariable<FixedString128Bytes>();
+    public NetworkVariable<bool> masterclient = new NetworkVariable<bool>();
     public SharedSpacesLocalPlayerState localPlayerState { get; private set; }
 
     private SharedSpacesPlayerColor playerColor;
@@ -34,8 +33,10 @@ public class SharedSpacesPlayerState : NetworkBehaviour
         masterclient.OnValueChanged -= OnMasterclientChanged;
     }
 
-    private void OnDestroy()
+    public override void OnDestroy()
     {
+        base.OnDestroy();
+        
         if (!localPlayerState) return;
 
         localPlayerState.transform.position = transform.position;
@@ -47,9 +48,9 @@ public class SharedSpacesPlayerState : NetworkBehaviour
         playerColor.UpdateColor(newColor);
     }
 
-    private void OnUsernameChanged(string oldName, string newName)
+    private void OnUsernameChanged(FixedString128Bytes oldName, FixedString128Bytes newName)
     {
-        playerName.username.text = newName;
+        playerName.username.text = newName.ConvertToString();
     }
 
     private void OnMasterclientChanged(bool oldVal, bool newVal)
@@ -112,7 +113,7 @@ public class SharedSpacesPlayerState : NetworkBehaviour
     }
     /********************************************************************/
 
-    public override void NetworkStart()
+    public override void OnNetworkSpawn()
     {
         if (!GetComponent<NetworkObject>().IsOwner) return;
 

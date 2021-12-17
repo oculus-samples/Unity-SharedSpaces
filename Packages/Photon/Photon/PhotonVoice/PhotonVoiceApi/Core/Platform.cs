@@ -1,5 +1,3 @@
-#define PREVIEW_SCREEN_QUAD_TEXTURE // use video texture, otherwise use SurfaceView for Android and AVCaptureVideoPreviewLayer for iOS
-
 using System;
 using System.Collections;
 using System.Diagnostics;
@@ -8,6 +6,31 @@ namespace Photon.Voice
 {
     public static class Platform
     {
+        static public IDeviceEnumerator CreateAudioInEnumerator(ILogger logger)
+        {
+
+#if WINDOWS_UWP || ENABLE_WINMD_SUPPORT
+            return new UWP.AudioInEnumerator(logger);
+#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            return new Windows.AudioInEnumerator(logger);
+#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            return new MacOS.AudioInEnumerator(logger);
+#else
+            return new AudioInEnumeratorNotSupported(logger);
+#endif
+        }
+
+        static public IAudioInChangeNotifier CreateAudioInChangeNotifier(Action callback, ILogger logger)
+        {
+#if (UNITY_IOS && !UNITY_EDITOR)
+            return new IOS.AudioInChangeNotifier(callback, logger);
+#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            return new MacOS.AudioInChangeNotifier(callback, logger);
+#else
+            return new AudioInChangeNotifierNotSupported(callback, logger);
+#endif
+        }
+
         static public IEncoder CreateDefaultAudioEncoder<T>(ILogger logger, VoiceInfo info)
         {
             switch (info.Codec)
@@ -15,11 +38,56 @@ namespace Photon.Voice
                 case Codec.AudioOpus:
                     return OpusCodec.Factory.CreateEncoder<T[]>(info, logger);
                 default:
-                    throw new UnsupportedCodecException("Platform.CreateDefaultAudioEncoder", info.Codec, logger);
+                    throw new UnsupportedCodecException("Platform.CreateDefaultAudioEncoder", info.Codec);
             }
         }
 
+        static public IAudioDesc CreateDefaultAudioSource(ILogger logger, DeviceInfo dev, int samplingRate, int channels, object otherParams = null)
+        {
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            return new Windows.WindowsAudioInPusher(dev.IsDefault ? -1 : dev.IDInt, logger);
+#elif UNITY_IOS && !UNITY_EDITOR
+            if (otherParams == null)
+            {
+                return new IOS.AudioInPusher(IOS.AudioSessionParametersPresets.VoIP, logger);
+            }
+            else
+            {
+                return new IOS.AudioInPusher((IOS.AudioSessionParameters)otherParams, logger);
+            }
+#elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            return new MacOS.AudioInPusher(dev.IsDefault ? -1 : dev.IDInt, logger);
+#elif UNITY_ANDROID && !UNITY_EDITOR
+            if (otherParams == null)
+            {
+                return new Unity.AndroidAudioInAEC(logger, true, true, true);
+            }
+            else
+            {
+                var p = (Unity.AndroidAudioInParameters)otherParams;
+                return new Unity.AndroidAudioInAEC(logger, p.EnableAEC, p.EnableAGC, p.EnableNS);
+            }            
+#elif UNITY_WSA && !UNITY_EDITOR
+            return new UWP.AudioInPusher(logger, samplingRate, channels, dev.IsDefault ? "" : dev.IDString);
+#elif UNITY_5_3_OR_NEWER // #if UNITY
+            return new Unity.MicWrapper(dev.IDString, samplingRate, logger);
+#else
+            throw new UnsupportedPlatformException("Platform.CreateDefaultAudioSource");
+#endif
+        }
+
 #if PHOTON_VOICE_VIDEO_ENABLE
+        static public IDeviceEnumerator CreateVideoInEnumerator(ILogger logger)
+        {
+#if WINDOWS_UWP || ENABLE_WINMD_SUPPORT
+            return new UWP.VideoInEnumerator(logger);
+#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            return new Unity.VideoInEnumerator(logger);
+#else
+            return new VideoInEnumeratorNotSupported(logger);
+#endif
+        }
+
         static public IEncoderDirectImage CreateDefaultVideoEncoder(ILogger logger, VoiceInfo info)
         {
             switch (info.Codec)
@@ -29,7 +97,7 @@ namespace Photon.Voice
                     return new VPxCodec.Encoder(logger, info);
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
                 case Codec.VideoH264:
-                    //ve = new FFmpegCodec.Encoder(logger, info);
+                    //return new FFmpegCodec.Encoder(logger, info);
                     return new Windows.MFTCodec.VideoEncoder(logger, info);
 #elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
                 case Codec.VideoH264:
@@ -37,127 +105,101 @@ namespace Photon.Voice
                     return new MacOS.VideoEncoder(logger, info);
 #endif
                 default:
-                    throw new UnsupportedCodecException("Platform.CreateDefaultVideoEncoder", info.Codec, logger);
+                    throw new UnsupportedCodecException("Platform.CreateDefaultVideoEncoder", info.Codec);
             }
         }
 
-        static public IVideoRecorder CreateDefaultVideoRecorder(ILogger logger, PreviewManager previewManager, VoiceInfo info, string camDevice, Action<IVideoRecorder> onReady)
+        static public IDecoderDirect<ImageOutputBuf> CreateDefaultVideoDecoder(ILogger logger, VoiceInfo info)
         {
-            // native platform-specific recorders
-#if UNITY_ANDROID && !UNITY_EDITOR
-#if PREVIEW_SCREEN_QUAD_TEXTURE
-            return new Unity.AndroidVideoRecorderTexture(logger, info, onReady);
-#else
-            var ve = new Unity.AndroidVideoEncoderSurfaceView(logger, previewManager, info);
-            return new Unity.AndroidVideoRecorderSurfaceView(ve, ve.Preview, onReady);
-#endif
-#elif UNITY_IOS && !UNITY_EDITOR
-            if (info.Codec == Codec.VideoH264)
-            {
-#if PREVIEW_SCREEN_QUAD_TEXTURE
-                return new IOS.VideoRecorderTexture(logger, info, onReady);
-#else
-                var ve = new IOS.VideoEncoderLayer(logger, info);
-                return new IOS.VideoRecorderLayer(ve, onReady);
-#endif
-            }
-            throw new UnsupportedCodecException("Platform.CreateDefaultVideoRecorder", info.Codec, logger);
-#elif WINDOWS_UWP || (UNITY_WSA && !UNITY_EDITOR)
-            if (info.Codec == Codec.VideoH264)
-            {
-                var ve = new UWP.VideoEncoder(logger, info);
-                return new UWP.VideoRecorder(ve, ve.Preview, onReady);
-            }
-            throw new UnsupportedCodecException("Platform.CreateDefaultVideoRecorder", info.Codec, logger);
-#else // multi-platform VideoRecorderUnity or generic VideoRecorder
-            var ve = CreateDefaultVideoEncoder(logger, info);
-#if UNITY_5_3_OR_NEWER // #if UNITY
-            return new Unity.VideoRecorderUnity(ve, null, camDevice, info.Width, info.Height, info.FPS, onReady);
-#else
-            return new VideoRecorder(ve, null);
-#endif
-
-#endif
-            }
-
-        static public IVideoPlayer CreateDefaultVideoPlayer(ILogger logger, PreviewManager previewManager, VoiceInfo info, Action<IVideoPlayer> onReady)
-        {
-            // native platform-specific players
-#if UNITY_ANDROID && !UNITY_EDITOR
-#if PREVIEW_SCREEN_QUAD_TEXTURE
-            return new Unity.AndroidVideoPlayerTexture(logger, info, onReady);
-#else
-            var vd = new Unity.AndroidVideoDecoderSurfaceView(logger, previewManager, info);
-            return new VideoPlayer(vd, vd.Preview, info.Width, info.Height, onReady);
-#endif
-#elif UNITY_IOS && !UNITY_EDITOR
-            if (info.Codec == Codec.VideoH264)
-            {
-#if PREVIEW_SCREEN_QUAD_TEXTURE
-                return new IOS.VideoPlayerTexture(logger, info, onReady);
-#else
-                var vd = new IOS.VideoDecoderLayer(logger);
-                return new VideoPlayer(vd, vd.PreviewLayer, info.Width, info.Height, onReady);
-#endif
-            }
-            throw new UnsupportedCodecException("Platform.CreateDefaultVideoPlayer", info.Codec, logger);
-#elif WINDOWS_UWP || (UNITY_WSA && !UNITY_EDITOR)
-            if (info.Codec == Codec.VideoH264)
-            {
-                var vd = new UWP.VideoDecoder(logger, info);
-                return new VideoPlayer(vd, vd.Preview, info.Width, info.Height, onReady);
-            }
-            throw new UnsupportedCodecException("Platform.CreateDefaultVideoPlayer", info.Codec, logger);
-#else  // multi-platform VideoPlayerUnity or generic VideoPlayer
-            IDecoderQueuedOutputImageNative vd;
             switch (info.Codec)
             {
                 case Codec.VideoVP8:
                 case Codec.VideoVP9:
-                    vd = new VPxCodec.Decoder(logger);
-                    break;
+                    return new VPxCodec.Decoder(logger);
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
                 case Codec.VideoH264:
-                    //vd = new FFmpegCodec.Decoder(logger);
-                    vd = new Windows.MFTCodec.VideoDecoder(logger, info);
-                    break;
+                    //return new FFmpegCodec.Decoder(logger);
+                    return new Windows.MFTCodec.VideoDecoder(logger, info);
 #elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
                 case Codec.VideoH264:
-                    //vd = new FFmpegCodec.Decoder(logger);
-                    vd = new MacOS.VideoDecoder(logger, info);
+                    //return new FFmpegCodec.Decoder(logger);
+                    return new MacOS.VideoDecoder(logger, info);
                     break;
 #endif
                 default:
-                    throw new UnsupportedCodecException("Platform.CreateDefaultVideoPlayer", info.Codec, logger);
+                    throw new UnsupportedCodecException("Platform.CreateDefaultVideoDecoder", info.Codec);
             }
+        }
+
+        static public IVideoRecorder CreateDefaultVideoRecorder(ILogger logger, VoiceInfo info, DeviceInfo camDevice, Action<IVideoRecorder> onReady)
+        {
+            // native platform-specific recorders
+#if UNITY_ANDROID && !UNITY_EDITOR
+            return new Unity.AndroidVideoRecorderSurfaceView(logger, info, onReady);
+#elif UNITY_IOS && !UNITY_EDITOR
+            if (info.Codec == Codec.VideoH264)
+            {
+                return new IOS.VideoRecorderLayer(logger, info, onReady);
+            }
+            throw new UnsupportedCodecException("Platform.CreateDefaultVideoRecorder", info.Codec);
+#elif WINDOWS_UWP || (UNITY_WSA && !UNITY_EDITOR)
+            if (info.Codec == Codec.VideoH264)
+            {
+                return new UWP.VideoRecorderMediaPlayerElement(logger, info, camDevice.IDString, onReady);
+            }
+            throw new UnsupportedCodecException("Platform.CreateDefaultVideoRecorder", info.Codec);
+#else // multi-platform VideoRecorderUnity
+            var ve = CreateDefaultVideoEncoder(logger, info);
+#if UNITY_5_3_OR_NEWER // #if UNITY
+            return new Unity.VideoRecorderUnity(ve, null, camDevice.IDString, info.Width, info.Height, info.FPS, onReady);
+#else
+            throw new NotImplementedException("Platform.CreateDefaultVideoRecorder: default Video Recorder for the platform is not implemented.");
+#endif
+#endif
+        }
+
+        static public IVideoPlayer CreateDefaultVideoPlayer(ILogger logger, VoiceInfo info, Action<IVideoPlayer> onReady)
+        {
+            // native platform-specific players
+#if UNITY_ANDROID && !UNITY_EDITOR
+            var vd = new Unity.AndroidVideoDecoderSurfaceView(logger, info);
+            return new VideoPlayer(vd, vd.Preview, info.Width, info.Height, onReady);
+#elif UNITY_IOS && !UNITY_EDITOR
+            if (info.Codec == Codec.VideoH264)
+            {
+                var vd = new IOS.VideoDecoderLayer(logger);
+                return new VideoPlayer(vd, vd.PreviewLayer, info.Width, info.Height, onReady);
+            }
+            throw new UnsupportedCodecException("Platform.CreateDefaultVideoPlayer", info.Codec);
+#elif WINDOWS_UWP || (UNITY_WSA && !UNITY_EDITOR)
+            if (info.Codec == Codec.VideoH264)
+            {
+                var vd = new UWP.VideoDecoderMediaPlayerElement(logger, info);
+                return new VideoPlayer(vd, vd.PreviewMediaPlayerElement, info.Width, info.Height, onReady);
+            }
+            throw new UnsupportedCodecException("Platform.CreateDefaultVideoPlayer", info.Codec);
+#else  // multi-platform VideoPlayerUnity or generic VideoPlayer
+            var vd = CreateDefaultVideoDecoder(logger, info);
 #if UNITY_5_3_OR_NEWER // #if UNITY
             var vp = new Unity.VideoPlayerUnity(vd, onReady);
             // assign Draw method copying Image to Unity texture as software decoder Output
             vd.Output = vp.Draw;
             return vp;
 #else
-            return new VideoPlayer(vd, null, 0, 0);
+            throw new NotImplementedException("Platform.CreateDefaultVideoPlayer: default Video Player for the platform is not implemented.");
 #endif
 
 #endif
         }
 
-        public static PreviewManager CreateDefaultPreviewManager(ILogger logger)
+        public static IPreviewManager CreateDefaultPreviewManager(ILogger logger)
         {
 #if UNITY_ANDROID && !UNITY_EDITOR
-#if PREVIEW_SCREEN_QUAD_TEXTURE
-            return new Unity.PreviewManagerScreenQuadTexture(logger);
-#else
             return new Unity.AndroidPreviewManagerSurfaceView(logger);
-#endif
 #elif UNITY_IOS && !UNITY_EDITOR
-#if PREVIEW_SCREEN_QUAD_TEXTURE
-            return new Unity.PreviewManagerScreenQuadTexture(logger);
-#else
             return new IOS.PreviewManagerLayer(logger);
-#endif
 #elif WINDOWS_UWP || (UNITY_WSA && !UNITY_EDITOR)
-            return new UWP.PreviewManager(logger);
+            return new UWP.PreviewManagerMediaPlayerElement(logger);
 #elif UNITY_5_3_OR_NEWER // #if UNITY
             return new Unity.PreviewManagerScreenQuadTexture(logger); // uses custom shader
             // return new Unity.PreviewManagerUnityGUI(); // uses GUI.DrawTexture
@@ -166,6 +208,60 @@ namespace Photon.Voice
 #endif
         }
 
+// Unity Texture Previews
+#if UNITY_5_3_OR_NEWER // #if UNITY
+        static public IVideoRecorder CreateVideoRecorderUnityTexture(ILogger logger, VoiceInfo info, DeviceInfo camDevice, Action<IVideoRecorder> onReady)
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            return new Unity.AndroidVideoRecorderUnityTexture(logger, info, onReady);
+#elif UNITY_IOS && !UNITY_EDITOR
+            if (info.Codec == Codec.VideoH264)
+            {
+                return new IOS.VideoRecorderUnityTexture(logger, info, onReady);
+            }
+            throw new UnsupportedCodecException("Platform.CreateVideoRecorderUnityTexture", info.Codec);
+#elif WINDOWS_UWP || (UNITY_WSA && !UNITY_EDITOR)
+            if (info.Codec == Codec.VideoH264)
+            {
+                return new UWP.VideoRecorderUnityTexture(logger, info, camDevice.IDString, onReady);
+            }
+            throw new UnsupportedCodecException("Platform.CreateVideoRecorderUnityTexture", info.Codec);
+#else // multi-platform VideoRecorderUnity
+            var ve = CreateDefaultVideoEncoder(logger, info);
+            return new Unity.VideoRecorderUnity(ve, null, camDevice.IDString, info.Width, info.Height, info.FPS, onReady);
 #endif
         }
+
+        static public IVideoPlayer CreateVideoPlayerUnityTexture(ILogger logger, VoiceInfo info, Action<IVideoPlayer> onReady)
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            return new Unity.AndroidVideoPlayerUnityTexture(logger, info, onReady);
+#elif UNITY_IOS && !UNITY_EDITOR
+            if (info.Codec == Codec.VideoH264)
+            {
+                return new IOS.VideoPlayerUnityTexture(logger, info, onReady);
+            }
+            throw new UnsupportedCodecException("Platform.CreateVideoPlayerUnityTexture", info.Codec);
+#elif WINDOWS_UWP || (UNITY_WSA && !UNITY_EDITOR)
+            if (info.Codec == Codec.VideoH264)
+            {
+                return new UWP.VideoPlayerUnityTexture(logger, info, onReady);
+            }
+            throw new UnsupportedCodecException("Platform.CreateVideoPlayerUnityTexture", info.Codec);
+#else  // multi-platform VideoPlayerUnity
+            var vd = CreateDefaultVideoDecoder(logger, info);
+            var vp = new Unity.VideoPlayerUnity(vd, onReady);
+            // assign Draw method copying Image to Unity texture as software decoder Output
+            vd.Output = vp.Draw;
+            return vp;
+#endif
+        }
+
+        static public IPreviewManager CreatePreviewManagerUnityTexture(ILogger logger)
+        {
+            return new Unity.PreviewManagerScreenQuadTexture(logger);
+        }
+#endif // UNITY_5_3_OR_NEWER
+#endif // PHOTON_VOICE_VIDEO_ENABLE
     }
+}

@@ -8,7 +8,7 @@
 // <author>developer@photonengine.com</author>
 // ----------------------------------------------------------------------------
 
-//#define USE_NEW_TRANSPORT
+#define USE_NEW_TRANSPORT
 
 using System;
 using System.Collections.Generic;
@@ -141,6 +141,14 @@ namespace Photon.Voice.Unity
         /// <summary> Auto instantiate a GameObject and attach a Speaker component to link to a remote audio stream if no candidate could be found </summary>
         public bool AutoCreateSpeakerIfNotFound = true;
         
+        /// <summary>Limits the number of datagrams that are created in each LateUpdate.</summary>
+        /// <remarks>Helps spreading out sending of messages minimally.</remarks>
+        public int MaxDatagrams = 3;
+
+        /// <summary>Signals that outgoing messages should be sent in the next LateUpdate call.</summary>
+        /// <remarks>Up to MaxDatagrams are created to send queued messages.</remarks>
+        public bool SendAsap;
+
         #endregion
 
         #region Properties
@@ -193,14 +201,7 @@ namespace Photon.Voice.Unity
                     this.client.ClientType = ClientAppType.Voice;
                     this.client.VoiceClient.OnRemoteVoiceInfoAction += this.OnRemoteVoiceInfo;
                     this.client.StateChanged += this.OnVoiceStateChanged;
-                    if (this.Settings != null && this.LogLevel < this.Settings.NetworkLogging)
-                    {
-                        this.client.LoadBalancingPeer.DebugOut = this.Settings.NetworkLogging;
-                    }
-                    else
-                    {
-                        this.client.LoadBalancingPeer.DebugOut = this.LogLevel;
-                    }
+                    this.client.OpResponseReceived += this.OnOperationResponseReceived;
                     base.Client = this.client;
                     this.StartFallbackSendAckThread();
                 }
@@ -278,19 +279,14 @@ namespace Photon.Voice.Unity
             get { return this.globalRecordersLogLevel; }
             set
             {
-                if (this.globalRecordersLogLevel != value)
+                this.globalRecordersLogLevel = value;
+                for (int i = 0; i < this.initializedRecorders.Count; i++)
                 {
-                    this.globalRecordersLogLevel = value;
-                    #if UNITY_EDITOR
-                    Recorder[] recorders = FindObjectsOfType<Recorder>(); // todo: get rid of this ugliness
-                    for (int i = 0; i < recorders.Length; i++)
+                    Recorder recorder = this.initializedRecorders[i];
+                    if (!recorder.IgnoreGlobalLogLevel)
                     {
-                        if (!recorders[i].IgnoreGlobalLogLevel)
-                        {
-                            recorders[i].LogLevel = this.globalRecordersLogLevel;
-                        }
+                        recorder.LogLevel = this.globalRecordersLogLevel;
                     }
-                    #endif
                 }
             }
         }
@@ -300,12 +296,13 @@ namespace Photon.Voice.Unity
             get { return this.globalSpeakersLogLevel; }
             set
             {
-                if (this.globalSpeakersLogLevel != value)
+                this.globalSpeakersLogLevel = value;
+                for (int i = 0; i < this.linkedSpeakers.Count; i++)
                 {
-                    this.globalSpeakersLogLevel = value;
-                    for (int i = 0; i < this.linkedSpeakers.Count; i++)
+                    Speaker speaker = this.linkedSpeakers[i];
+                    if (!speaker.IgnoreGlobalLogLevel)
                     {
-                        this.linkedSpeakers[i].LogLevel = this.globalSpeakersLogLevel;
+                        speaker.LogLevel = this.globalSpeakersLogLevel;
                     }
                 }
             }
@@ -486,6 +483,52 @@ namespace Photon.Voice.Unity
             }
         }
 
+        /// <summary>
+        /// Tries to link local Speaker with remote voice stream using UserData.
+        /// Useful if Speaker created after stream is started.
+        /// </summary>
+        /// <param name="speaker">Speaker ot try linking.</param>
+        /// <param name="userData">UserData object used to bind local Speaker with remote voice stream.</param>
+        /// <returns></returns>
+        public virtual bool TryLateLinkingUsingUserData(Speaker speaker, object userData)
+        {
+            if (!speaker || speaker == null)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("Speaker is null or destroyed.");
+                }
+                return false;
+            }
+            if (speaker.IsLinked)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("Speaker already linked.");
+                }
+                return false;
+            }
+            if (!this.Client.InRoom)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("Client not joined to a voice room, client state: {0}.", Enum.GetName(typeof(ClientState), this.ClientState));
+                }
+                return false;
+            }
+            RemoteVoiceLink remoteVoice;
+            if (this.TryGetFirstVoiceStreamByUserData(userData, out remoteVoice))
+            {
+                if (this.Logger.IsInfoEnabled)
+                {
+                    this.Logger.LogInfo("Speaker 'late-linking' for remoteVoice {0}.", remoteVoice);
+                }
+                this.LinkSpeaker(speaker, remoteVoice);
+                return speaker.IsLinked;
+            }
+            return false;
+        }
+
         #endregion
 
         #region Private Methods
@@ -493,10 +536,6 @@ namespace Photon.Voice.Unity
         protected override void Awake()
         {
             base.Awake();
-            if (this.SpeakerFactory == null)
-            {
-                this.SpeakerFactory = this.SimpleSpeakerFactory;
-            }
             if (this.enableSupportLogger)
             {
                 this.supportLoggerComponent = this.gameObject.AddComponent<SupportLogger>();
@@ -522,11 +561,28 @@ namespace Photon.Voice.Unity
             {
                 this.linkedSpeakers[i].Service();
             }
+            for (int i = 0; i < this.initializedRecorders.Count; i++)
+            {
+                Recorder initializedRecorder = this.initializedRecorders[i];
+                if (initializedRecorder.MicrophoneDeviceChangeDetected)
+                {
+                    initializedRecorder.HandleDeviceChange();
+                }
+            }
         }
 
         protected virtual void FixedUpdate()
         {
+            #if VOICE_DISPATCH_IN_FIXEDUPDATE
             this.Dispatch();
+            #elif VOICE_DISPATCH_IN_LATEUPDATE
+            // do not dispatch here
+            #else
+            if (Time.timeScale > this.MinimalTimeScaleToDispatchInFixedUpdate)
+            {
+                this.Dispatch();
+            }
+            #endif
         }
 
         /// <summary>Dispatches incoming network messages for Voice client. Called in FixedUpdate or LateUpdate.</summary>
@@ -550,21 +606,30 @@ namespace Photon.Voice.Unity
 
         private void LateUpdate()
         {
-            // see MinimalTimeScaleToDispatchInFixedUpdate for explanation
+            #if VOICE_DISPATCH_IN_LATEUPDATE
+            this.Dispatch();
+            #elif VOICE_DISPATCH_IN_FIXEDUPDATE
+            // do not dispatch here
+            #else
+            // see MinimalTimeScaleToDispatchInFixedUpdate and FixedUpdate for explanation:
             if (Time.timeScale <= this.MinimalTimeScaleToDispatchInFixedUpdate)
             {
                 this.Dispatch();
             }
+            #endif
 
             int currentMsSinceStart = (int)(Time.realtimeSinceStartup * 1000); // avoiding Environment.TickCount, which could be negative on long-running platforms
-            if (currentMsSinceStart > this.nextSendTickCount)
+            if (this.SendAsap || currentMsSinceStart > this.nextSendTickCount)
             {
+                this.SendAsap = false;
                 bool doSend = true;
-                while (doSend)
+                int sendCounter = 0;
+                while (doSend && sendCounter < this.MaxDatagrams)
                 {
                     // Send all outgoing commands
                     Profiler.BeginSample("[Photon Voice]: SendOutgoingCommands");
                     doSend = this.Client.LoadBalancingPeer.SendOutgoingCommands();
+                    sendCounter++;
                     Profiler.EndSample();
                 }
 
@@ -649,34 +714,34 @@ namespace Photon.Voice.Unity
         
         private void OnRemoteVoiceInfo(int channelId, int playerId, byte voiceId, VoiceInfo voiceInfo, ref RemoteVoiceOptions options)
         {
+            RemoteVoiceLink remoteVoice = new RemoteVoiceLink(voiceInfo, playerId, voiceId, channelId);
             if (voiceInfo.Codec != Codec.AudioOpus)
             {
                 if (this.Logger.IsDebugEnabled)
                 {
-                    this.Logger.LogInfo("OnRemoteVoiceInfo skipped as coded {4} is not Opus, channel {0} player {1} voice #{2} userData {3}", channelId, playerId, voiceId, voiceInfo.UserData, voiceInfo.Codec);
+                    this.Logger.LogInfo("OnRemoteVoiceInfo skipped as codec is not Opus, {0}", remoteVoice);
                 }
                 return;
             }
+            remoteVoice.Init(ref options);
+
             if (this.Logger.IsInfoEnabled)
             {
-                this.Logger.LogInfo("OnRemoteVoiceInfo channel {0} player {1} voice #{2} userData {3}", channelId, playerId, voiceId, voiceInfo.UserData);
+                this.Logger.LogInfo("OnRemoteVoiceInfo {0}", remoteVoice);
             }
-            bool duplicate = false;
             for (int i = 0; i < this.cachedRemoteVoices.Count; i++)
             {
                 RemoteVoiceLink remoteVoiceLink = this.cachedRemoteVoices[i];
-                if (remoteVoiceLink.PlayerId == playerId && remoteVoiceLink.VoiceId == voiceId)
+                if (remoteVoiceLink.Equals(remoteVoice))
                 {
                     if (this.Logger.IsWarningEnabled)
                     {
-                        this.Logger.LogWarning("Duplicate remote voice info event channel {0} player {1} voice #{2} userData {3}", channelId, playerId, voiceId, voiceInfo.UserData);
+                        this.Logger.LogWarning("Possible duplicate remoteVoiceInfo cached:{0} vs. received:{1}", remoteVoiceLink, remoteVoice);
                     }
-                    duplicate = true;
-                    this.cachedRemoteVoices.RemoveAt(i);
-                    break;
+                    //this.cachedRemoteVoices.RemoveAt(i);
+                    //break;
                 }
             }
-            RemoteVoiceLink remoteVoice = new RemoteVoiceLink(voiceInfo, playerId, voiceId, channelId, ref options);
             this.cachedRemoteVoices.Add(remoteVoice);
             if (RemoteVoiceAdded != null)
             {
@@ -686,26 +751,31 @@ namespace Photon.Voice.Unity
             {
                 if (this.Logger.IsInfoEnabled)
                 {
-                    this.Logger.LogInfo("RemoteVoiceRemoved channel {0} player {1} voice #{2} userData {3}", channelId, playerId, voiceId, voiceInfo.UserData);
+                    this.Logger.LogInfo("RemoteVoiceRemoved {0}", remoteVoice);
                 }
                 if (!this.cachedRemoteVoices.Remove(remoteVoice) && this.Logger.IsWarningEnabled)
                 {
-                    this.Logger.LogWarning("Cached remote voice info not removed for channel {0} player {1} voice #{2} userData {3}", channelId, playerId, voiceId, voiceInfo.UserData);
+                    this.Logger.LogWarning("Cached remote voice not removed {0}", remoteVoice);
                 }
             };
+            Speaker speaker = null;
             if (this.SpeakerFactory != null)
             {
-                Speaker speaker = this.SpeakerFactory(playerId, voiceId, voiceInfo.UserData);
-                if (speaker != null && duplicate && speaker.IsLinked)
-                {
-                    if (this.Logger.IsWarningEnabled)
-                    {
-                        this.Logger.LogWarning("Overriding speaker link for channel {0} player {1} voice #{2} userData {3}", channelId, playerId, voiceId, voiceInfo.UserData);
-                    }
-                    speaker.OnRemoteVoiceRemove();
-                }
-                this.LinkSpeaker(speaker, remoteVoice);
+                speaker = this.SpeakerFactory(playerId, voiceId, voiceInfo.UserData);
             }
+            if (speaker == null)
+            {
+                speaker = this.SimpleSpeakerFactory(playerId, voiceId, voiceInfo.UserData);
+            }
+            else if (speaker.IsLinked)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("Overriding speaker link, old:{0} new:{1}", speaker.RemoteVoiceLink, remoteVoice);
+                }
+                speaker.OnRemoteVoiceRemove();
+            }
+            this.LinkSpeaker(speaker, remoteVoice);
         }
 
         protected virtual void OnVoiceStateChanged(ClientState fromState, ClientState toState)
@@ -784,6 +854,7 @@ namespace Photon.Voice.Unity
             if (clientStillExists)
             {
                 this.client.StateChanged -= this.OnVoiceStateChanged;
+                this.client.OpResponseReceived -= this.OnOperationResponseReceived;
                 this.client.Disconnect();
                 if (this.client.LoadBalancingPeer != null)
                 {
@@ -825,7 +896,7 @@ namespace Photon.Voice.Unity
                             {
                                 if (this.Logger.IsErrorEnabled)
                                 {
-                                    this.Logger.LogError("RemoteVoiceInfo event for actor number {0} received while respective actor not found in the room", remoteVoice.PlayerId);
+                                    this.Logger.LogError("RemoteVoiceInfo event received while respective actor not found in the room, {0}", remoteVoice);
                                 }
                             }
                             else
@@ -836,7 +907,7 @@ namespace Photon.Voice.Unity
                     }
                     if (this.Logger.IsInfoEnabled)
                     {
-                        this.Logger.LogInfo("Speaker linked with remote voice {0}/{1}", remoteVoice.PlayerId, remoteVoice.VoiceId);
+                        this.Logger.LogInfo("Speaker linked with remote voice {0}", remoteVoice);
                     }
                     this.linkedSpeakers.Add(speaker);
                     remoteVoice.RemoteVoiceRemoved += delegate
@@ -851,7 +922,7 @@ namespace Photon.Voice.Unity
             }
             else if (this.Logger.IsWarningEnabled)
             {
-                this.Logger.LogWarning("Speaker is null. Remote voice {0}/{1} not linked.", remoteVoice.PlayerId, remoteVoice.VoiceId);
+                this.Logger.LogWarning("Speaker is null. Remote voice {0} not linked.", remoteVoice);
             }
         }
 
@@ -925,10 +996,66 @@ namespace Photon.Voice.Unity
             for (int i = 0; i < this.initializedRecorders.Count; i++)
             {
                 Recorder rec = this.initializedRecorders[i];
-                if (rec.IsInitialized && rec.IsRecording && rec.RecordOnlyWhenJoined)
+                if (rec.IsRecording && rec.RecordOnlyWhenJoined)
                 {
                     rec.StopRecordingInternal();
                 }
+            }
+        }
+        
+        private bool TryGetFirstVoiceStreamByUserData(object userData, out RemoteVoiceLink remoteVoiceLink)
+        {
+            remoteVoiceLink = null;
+            if (userData == null)
+            {
+                return false;
+            }
+            if (this.Logger.IsWarningEnabled)
+            {
+                int found = 0;
+                for (int i = 0; i < this.cachedRemoteVoices.Count; i++)
+                {
+                    RemoteVoiceLink remoteVoice = this.cachedRemoteVoices[i];
+                    if (userData.Equals(remoteVoice.Info.UserData))
+                    {
+                        found++;
+                        if (found == 1)
+                        {
+                            remoteVoiceLink = remoteVoice;
+                            if (this.Logger.IsDebugEnabled)
+                            {
+                                this.Logger.LogWarning("(first) remote voice stream found by UserData:{0}", userData, remoteVoice);
+                            }
+                        }
+                        else
+                        {
+                            this.Logger.LogWarning("{0} remote voice stream found (so far) using same UserData:{0}", found, remoteVoice);
+                        }
+                    }
+                }
+                return found > 0;
+            }
+            for (int i = 0; i < this.cachedRemoteVoices.Count; i++)
+            {
+                RemoteVoiceLink remoteVoice = this.cachedRemoteVoices[i];
+                if (userData.Equals(remoteVoice.Info.UserData))
+                {
+                    remoteVoiceLink = remoteVoice;
+                    if (this.Logger.IsDebugEnabled)
+                    {
+                        this.Logger.LogWarning("(first) remote voice stream found by UserData:{0}", userData, remoteVoice);
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        protected virtual void OnOperationResponseReceived(OperationResponse operationResponse)
+        {
+            if (this.Logger.IsErrorEnabled && operationResponse.ReturnCode != ErrorCode.Ok && (operationResponse.OperationCode != OperationCode.JoinRandomGame || operationResponse.ReturnCode == ErrorCode.NoRandomMatchFound))
+            {
+                this.Logger.LogError("Operation {0} response error code {1} message {2}", operationResponse.OperationCode, operationResponse.ReturnCode, operationResponse.DebugMessage);
             }
         }
 

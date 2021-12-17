@@ -54,7 +54,7 @@ namespace Photon.Voice.IOS
                     }
                 }
             });
-            t.Name = "IOS AudioInPusher ctr";
+            Util.SetThreadName(t, "[PV] IOSAudioInPusherCtr");
             t.Start();
         }
 

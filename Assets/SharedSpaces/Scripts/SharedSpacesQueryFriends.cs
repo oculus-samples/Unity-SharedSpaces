@@ -1,7 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 
 using UnityEngine;
-using MLAPI;
+using Unity.Netcode;
 using Oculus.Platform;
 
 public class SharedSpacesQueryFriends : MonoBehaviour

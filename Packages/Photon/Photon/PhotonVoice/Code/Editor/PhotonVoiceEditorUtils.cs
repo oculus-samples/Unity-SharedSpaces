@@ -1,14 +1,43 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using System.Linq;
 using System.Collections.Generic;
 
 namespace Photon.Voice.Unity.Editor
 {
+    [InitializeOnLoad] // calls static constructor when script is recompiled
     public static class PhotonVoiceEditorUtils
     {
+        public const string PHOTON_VIDEO_DEFINE_SYMBOL = "PHOTON_VOICE_VIDEO_ENABLE";
+        public const string PHOTON_VIDEO_AVAILABLE_DEFINE_SYMBOL = "PHOTON_VOICE_VIDEO_AVAILABLE";
+
+        static PhotonVoiceEditorUtils()
+        {
+            if (HasVideo)
+            {
+#if !PHOTON_VOICE_VIDEO_AVAILABLE
+                Debug.Log("Photon Video is available");
+                Realtime.PhotonEditorUtils.AddScriptingDefineSymbolToAllBuildTargetGroups(PHOTON_VIDEO_AVAILABLE_DEFINE_SYMBOL);
+                TriggerRecompile();
+#endif
+            }
+            else
+            {
+#if PHOTON_VOICE_VIDEO_AVAILABLE
+                RemoveScriptingDefineSymbolToAllBuildTargetGroups(PHOTON_VIDEO_AVAILABLE_DEFINE_SYMBOL);
+                TriggerRecompile();
+#endif
+            }
+        }
+
+        // triggers this calss recompilation after define symbols change
+        private static void TriggerRecompile()
+        {
+            AssetDatabase.ImportAsset("Assets/Photon/PhotonVoice/Code/Editor/PhotonVoiceEditorUtils.cs");
+        }
+
         /// <summary>True if the ChatClient of the Photon Chat API is available. If so, the editor may (e.g.) show additional options in settings.</summary>
         public static bool HasChat
         {
@@ -24,6 +53,14 @@ namespace Photon.Voice.Unity.Editor
             get
             {
                 return Type.GetType("Photon.Pun.PhotonNetwork, Assembly-CSharp") != null || Type.GetType("Photon.Pun.PhotonNetwork, Assembly-CSharp-firstpass") != null || Type.GetType("Photon.Pun.PhotonNetwork, PhotonUnityNetworking") != null;
+            }
+        }
+
+        public static bool HasVideo
+        {
+            get
+            {
+                return Directory.Exists("Assets/Photon/PhotonVoice/PhotonVoiceApi/Core/Video");
             }
         }
         
@@ -64,6 +101,26 @@ namespace Photon.Voice.Unity.Editor
         {
             Application.OpenURL("https://assetstore.unity.com/packages/tools/audio/photon-voice-2-130518");
         }
+
+#if PHOTON_VOICE_VIDEO_AVAILABLE
+
+#if PHOTON_VOICE_VIDEO_ENABLE
+        [MenuItem("Window/Photon Voice/Disable Video", false, 4)]
+        private static void DisableVideo()
+        {
+            RemoveScriptingDefineSymbolToAllBuildTargetGroups(PHOTON_VIDEO_DEFINE_SYMBOL);
+            TriggerRecompile();
+        }
+#else
+        [MenuItem("Window/Photon Voice/Enable Video", false, 4)]
+        private static void EnableVideo()
+        {
+            Realtime.PhotonEditorUtils.AddScriptingDefineSymbolToAllBuildTargetGroups(PHOTON_VIDEO_DEFINE_SYMBOL);
+            TriggerRecompile();
+        }
+#endif
+
+#endif
 
         public static void DeleteDirectory(string path)
         {
@@ -172,14 +229,48 @@ namespace Photon.Voice.Unity.Editor
             }
         }
 
-        /// <summary>
+		/// <summary>
+        /// Removes a given scripting define symbol to all build target groups
+        /// You can see all scripting define symbols ( not the internal ones, only the one for this project), in the PlayerSettings inspector
+        /// </summary>
+        /// <param name="defineSymbol">Define symbol.</param>
+        public static void RemoveScriptingDefineSymbolToAllBuildTargetGroups(string defineSymbol)
+        {
+            foreach (BuildTarget target in Enum.GetValues(typeof(BuildTarget)))
+            {
+                BuildTargetGroup group = BuildPipeline.GetBuildTargetGroup(target);
+
+                if (group == BuildTargetGroup.Unknown)
+                {
+                    continue;
+                }
+
+                var defineSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(group).Split(';').Select(d => d.Trim()).ToList();
+
+                if (defineSymbols.Contains(defineSymbol) && defineSymbols.Remove(defineSymbol))
+                {
+                    try
+                    {
+                        PlayerSettings.SetScriptingDefineSymbolsForGroup(group, string.Join(";", defineSymbols.ToArray()));
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogErrorFormat("Could not remove \"{0}\" Scripting Define Symbol for build target: {1} group: {2} {3}", defineSymbol, target, group, e);
+                    }
+                }
+            }
+        }
+
+		/// <summary>
 		/// Check if a GameObject is a prefab asset or part of a prefab asset, as opposed to an instance in the scene hierarchy
 		/// </summary>
 		/// <returns><c>true</c>, if a prefab asset or part of it, <c>false</c> otherwise.</returns>
 		/// <param name="go">The GameObject to check</param>
 		public static bool IsPrefab(GameObject go)
 		{
-            #if UNITY_2018_3_OR_NEWER
+            #if UNITY_2021_2_OR_NEWER
+            return UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(go) != null || EditorUtility.IsPersistent(go);
+            #elif UNITY_2018_3_OR_NEWER
             return UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetPrefabStage(go) != null || EditorUtility.IsPersistent(go);
             #else
             return EditorUtility.IsPersistent(go);

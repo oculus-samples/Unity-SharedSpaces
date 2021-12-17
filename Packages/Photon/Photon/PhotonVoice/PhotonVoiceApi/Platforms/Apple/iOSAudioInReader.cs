@@ -50,7 +50,7 @@ namespace Photon.Voice.IOS
                     }
                 }
             });
-            t.Name = "IOS AudioInReader ctr";
+            Util.SetThreadName(t, "[PV] IOSAudioInReaderCtr");
             t.Start();
         }
         public int Channels { get { return 1; } }

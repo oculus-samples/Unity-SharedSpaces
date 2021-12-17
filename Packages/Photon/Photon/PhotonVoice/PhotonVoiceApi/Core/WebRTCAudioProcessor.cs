@@ -197,7 +197,7 @@ namespace Photon.Voice
 #else
                         var t = new Thread(ReverseStreamThread);
                         t.Start();
-                        t.Name = "WebRTCAudioProcessor reverse stream";
+                        Util.SetThreadName(t, "[PV] WebRTCProcRevStream");
 #endif
                     }
 
@@ -251,6 +251,7 @@ namespace Photon.Voice
         public void OnAudioOutFrameFloat(float[] data)
         {
             if (disposed) return;
+            if (!aecInited) return;
             if (proc == IntPtr.Zero) return;
             foreach (var reverseBufFloat in reverseFramer.Frame(data))
             {
@@ -334,6 +335,7 @@ namespace Photon.Voice
 
         private int setParam(Param param, int v)
         {
+            if (disposed) return 0;
             logger.LogInfo("[PV] WebRTCAudioProcessor: setting param " + param + "=" + v);
             return webrtc_audio_processor_set_param(proc, (int)param, v);
         }

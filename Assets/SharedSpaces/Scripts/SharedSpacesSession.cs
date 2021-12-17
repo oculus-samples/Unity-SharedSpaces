@@ -2,8 +2,7 @@
 
 using System.Collections;
 using UnityEngine;
-using MLAPI;
-using MLAPI.Messaging;
+using Unity.Netcode;
 
 public class SharedSpacesSession : NetworkBehaviour
 {

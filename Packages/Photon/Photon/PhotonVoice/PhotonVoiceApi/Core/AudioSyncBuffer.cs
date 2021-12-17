@@ -38,7 +38,7 @@ namespace Photon.Voice
             {
                 lock (this)
                 {
-                    return this.frameQueue.Count * this.frameSamples;
+                    return (int)((float)this.frameQueue.Count * this.frameSamples * 1000 / sampleRate);
                 }
             } 
         }
@@ -185,7 +185,7 @@ namespace Photon.Voice
 
                     if (frame.Length != this.frameSize)
                     {
-                        logger.LogError("{0} AudioSyncBuffer audio frames are not of  size: {1} != {2}", this.logPrefix, frame.Length, frameSize);
+                        logger.LogError("{0} AudioSyncBuffer audio frames are not of size: {1} != {2}", this.logPrefix, frame.Length, frameSize);
                         return;
                     }
 

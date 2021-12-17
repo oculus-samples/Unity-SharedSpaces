@@ -1,6 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 
-using MLAPI;
+using Unity.Netcode;
 using Oculus.Platform;
 using System.Collections;
 using UnityEngine;

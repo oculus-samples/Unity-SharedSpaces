@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 
 namespace Photon.Voice
 {
@@ -70,5 +71,18 @@ namespace Photon.Voice
 
         // do not call frequently
         public int Max { get { return buf.Select(v => Math.Abs(v)).Max(); } }
+    }
+
+    internal static class Util
+    {
+        static public void SetThreadName(Thread t, string name)
+        {
+            const int MAX = 25;
+            if (name.Length > MAX)
+            {
+                name = name.Substring(0, MAX);
+            }
+            t.Name = name;
+        }
     }
 }

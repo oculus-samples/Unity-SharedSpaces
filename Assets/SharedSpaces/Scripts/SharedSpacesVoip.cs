@@ -5,7 +5,7 @@ using UnityEngine;
 #if !UNITY_EDITOR && !UNITY_STANDALONE_WIN
 using UnityEngine.Android;
 #endif
-using MLAPI;
+using Unity.Netcode;
 using Photon.Voice.Unity;
 using Photon.Voice.Unity.UtilityScripts;
 
@@ -61,7 +61,7 @@ public class SharedSpacesVoip : MonoBehaviour
     private Speaker SpeakerFactory(int playerId, byte voiceId, object userData)
     {
         SharedSpacesPlayerState player = null;
-        // The mapping between MLAPI client IDs and Photon client IDs is as below.
+        // The mapping between Unity.Netcode client IDs and Photon client IDs is as below.
         // Check GetMlapiClientId(), line 470, of PhotonRealtimeTransport.cs
         int targetId = playerId == 1 ? 0 : playerId + 1;
         

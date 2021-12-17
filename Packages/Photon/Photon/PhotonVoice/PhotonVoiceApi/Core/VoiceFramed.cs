@@ -231,7 +231,7 @@ namespace Photon.Voice
 #else
                 var t = new Thread(PushDataAsyncThread);
                 t.Start();
-                t.Name = LogPrefix + " data encode";
+                Util.SetThreadName(t, "[PV] EncData " + shortName);
 #endif
                 dataEncodeThreadStarted = true;
             }

@@ -417,7 +417,7 @@ namespace Photon.Voice.Unity.Editor
                 if (!string.IsNullOrEmpty(bestRegionSummaryInPrefs))
                 {
                     string[] regionsPrefsList = bestRegionSummaryInPrefs.Split(';');
-                    if (regionsPrefsList.Length == 0 || string.IsNullOrEmpty(regionsPrefsList[0]))
+                    if (regionsPrefsList.Length < 2 || string.IsNullOrEmpty(regionsPrefsList[0]) || string.IsNullOrEmpty(regionsPrefsList[1]))
                     {
                         prefLabel = notAvailableLabel;
                     }

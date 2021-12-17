@@ -3,6 +3,13 @@ using UnityEngine;
 
 namespace Photon.Voice.Unity
 {
+    public class AndroidAudioInParameters
+    {
+        public bool EnableAEC = false;
+        public bool EnableAGC = false;
+        public bool EnableNS = false;
+    }
+
     // depends on Unity's AndroidJavaProxy
     public class AndroidAudioInAEC : Voice.IAudioPusher<short>, IResettable
     {

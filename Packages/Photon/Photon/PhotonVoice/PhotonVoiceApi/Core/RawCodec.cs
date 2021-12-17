@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 
 namespace Photon.Voice
 {
@@ -77,13 +76,12 @@ namespace Photon.Voice
 			{
 			}
 			
-			private Type outType = typeof(T);
 			T[] buf = new T[0];
 			int sizeofT = System.Runtime.InteropServices.Marshal.SizeOf(default(T));
 
-			public void Input(byte[] byteBuf, FrameFlags flags)
+			public void Input(ref FrameBuffer byteBuf)
 			{
-				if (byteBuf == null)
+				if (byteBuf.Array == null)
 				{
 					return;
 				}
@@ -97,7 +95,7 @@ namespace Photon.Voice
 				{
 					buf = new T[s];
 				}
-				Buffer.BlockCopy(byteBuf, 0, buf, 0, byteBuf.Length);
+				Buffer.BlockCopy(byteBuf.Array, byteBuf.Offset, buf, 0, byteBuf.Length);
 
 				output(new FrameOut<T>((T[])(object)buf, false));
 			}

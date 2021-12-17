@@ -1,5 +1,65 @@
 Photon Voice 2 Change Log
 
+v2.28.2 (December 3rd, 2021)
+   PUN2: v2.40 (14f52ea) [RT/lib:4.1.6.11]
+   PhotonVoiceApi: revision 6306
+   FIXED: NullReferenceException when Recorder.StopRecordingWhenPaused is enabled as Recorder.HandleApplicationPause was trying to start recording without checking if it should.
+   FIXED: [WebRtcAudioDsp.AEC] NullReferenceException when WebRtcAudioDsp.AEC is enabled (introduced in previous version where we subscribe to AudioOutCapture event before we initialize AEC in WebRTCAudioProcessor).
+   FIXED: [iOS] resets audio session category to defaults values (CategoryAmbient, ModeDefault, CategoryOptionMixWithOthers) on cleanup (so you can set volume to zero for instance when app is closed).
+   FIXED: VoiceConnection.OnRemoteVoiceInfo() was setting the output handler for the remote stream even if the codec was not Opus, this prevented video component sharing this connection from handling the stream.
+   ADDED: [Logging] voice networking client's operation response errors (e.g. when join voice room fails).
+   ADDED: [WebRtcAudioDsp.AEC] WebRtcAudioDsp.AecOnlyWhenEnabled: as the name implies AEC will be used only when component isActiveAndEnabled (default true).
+   CHANGED: [WebRtcAudioDsp.AEC] refactoring started in previous version should be done.
+   ADDED: minor, WebRtcAudioDsp.IsInitialized (simple null check for internal processor class).
+   FIXED: minor, WebRtcAudioDsp's supported platforms custom define condition.
+   FIXED: [Editor only] minor, proper warn message text in custom WebRtcAudioDspEditor (only AEC does not work when component is not enabled).
+   FIXED: minor XML tag missing in PhotonVoiceEditorUtils.
+
+v2.28.1 (November 30th, 2021)
+   PUN2: v2.40 (14f52ea) [RT/lib:4.1.6.11]
+   PhotonVoiceApi: revision 6296
+   FIXED: Speaker.RestartPlayback was calling StartPlayback instead of StopPlayback first.
+   FIXED: [Editor only] minor, custom inspector error when BestRegionSummaryInPreferences format is broken.
+   FIXED: [Editor only] minor, custom inspector warning shown in wrong conditions (WebRtcAudioDsp.AEC enabled and Photon microphone type is not used).
+   FIXED: AudioOutCapture added only when WebRtcAudioDsp.AEC is enabled. 
+   CHANGED: [WebRtcAudioDsp.AEC] the getter now returns actual state of AEC when the WebRtcAudioDsp is initialized. 
+   CHANGED: [WebRtcAudioDsp.AEC] when disabled, AudioOutCapture is auto destroyed if it was created by WebRtcAudioDsp.
+
+v2.28 (November 10th, 2021)
+   PUN2: v2.39 (3d2cb9e) [RT/lib:4.1.6.10]
+   PhotonVoiceApi: revision 6268
+   FIXED: passing correct default Photon microphone ID (-1 instead of -128).
+   FIXED: compilation in 2021.2+ due to namespace change.
+   FIXED: crash in macOS when device changes due to Unity API call from non main thread by adding internal Recorder.MicrophoneDeviceChangeDetected flag & restarting recording from VoiceConnection.
+   CHANGED: [BREAKING] VoiceConnection.SimpleSpeakerFactory is now a fallback factory in all cases where VoiceConnection.SpeakerFactory does not return Speaker.
+   ADDED: VoiceConnection.TryLateLinkingUsingUserData (to be used w/ Photon Fusion & any other product integration).
+   CHANGED: VoiceConnection.GlobalRecordersLogLevel & VoiceConnection.GlobalSpeakersLogLevel refactored: we now properly check IgnoreGlobalLogLevel per Speaker, update initliazedRecorders only in Editor (no more FindObjectOfType) and build.
+   CHANGED: RemoteVoiceLink refactoring: for better logging & easier / simpler remote voice streams cache handling.
+
+v2.27.1 (October 26th, 2021)
+   PUN2: v2.39 (3d2cb9e) [RT/lib:4.1.6.10]
+   PhotonVoiceApi: revision 6245
+   FIXED: [Android] removed Camera permission added in previous version.
+   FIXED: background thread name length due to some constraints in some platform.
+   FIXED: [logging] minor, log level used for PhotonVoiceApi's AudioSyncBuffer classes: debug instead of info. (this will avoid 'underrun' / 'overrun' Speaker log noise/spam)
+
+v2.27 (October 06th, 2021)
+   PUN2: v2.37 (a9f7ce2) [RT/lib:4.1.6.7]
+   PhotonVoiceApi: revision 6226
+   CHANGED: [BREAKING macOS] native libs 'bundles' are no longer folders but files instead, you may want to remove those folders (AudioIn.bundle, opus_egpv.bundle, webrtc-audio.bundle) before updating or do a clean install of this version.
+   CHANGED: [BREAKING] by default the new NON-ALLOC version of LoadBalancingTransport is used in VoiceConnection. You can disable by commenting out "#define USE_NEW_TRANSPORT".
+   FIXED: Voice logging (VoiceConnection LogLevel, PhotonVoiceAPI) decoupled from Photon Realtime logging (LoadBalancingClient, NetworkLogging, LoadBalancingPeer.DebugOut).
+   FIXED: [PhotonVoiceApi, native lib, macOS] app freeze due to audio device change by replacing Unity's OnAudioConfigurationChanged usage with custom native plugin.
+   FIXED: [PhotonVoiceApi, native lib, Android] attempts were made to make audio bluetooth devices switch work smoothly when using Photon microphone type.
+   ADDED: [Experimental macOS] M1 support.
+   ADDED: [UtilityScript] MicrophonePermission for iOS and Android used in DemoVoiceUI.
+   ADDED: a way to force reinitialize AudioOut in Speaker.RestartPlayback via method param.
+   ADDED: VoiceConnection.MaxDatagrams & VoiceConnection.SendAsap as used by PUN in PhotonHandler.
+   ADDED: VOICE_DISPATCH_IN_FIXEDUPDATE & VOICE_DISPATCH_IN_LATEUPDATE options (custom defines) in VoiceConnection as used by PUN in PhotonHandler.
+   FIXED: [Editor only, Android] minor, warning in WebRtcAudioDsp custom editor won't be shown when AEC native setting of Photon microphone type is not used in Recorder.
+   ADDED: [Editor only, Android] minor, warnings in WebRtcAudioDsp custom editor when AGC or NS native settings of Photon microphone type  are enabled in both places.
+   FIXED: [Editor only] minor, avoiding sublists in dropdown of mic list in Editor when mic name contains '/'. (thanks Erick on twitch!)
+   
 v2.26.3 (July 28th, 2021)
    PUN2: v2.34.1 (92ac43d) [RT/lib:4.1.6.4]
    PhotonVoiceApi: revision 6145

@@ -58,9 +58,9 @@ namespace Photon.Voice.Unity.Editor
                 EditorGUILayout.HelpBox(message, MessageType.Warning);
                 #endif
             }
-            if (!this.processor.enabled)
+            if (!this.processor.isActiveAndEnabled && this.processor.AecOnlyWhenEnabled && this.aecSp.boolValue)
             {
-                EditorGUILayout.HelpBox("WebRtcAudioDsp is disabled and will not be used.", MessageType.Warning);
+                EditorGUILayout.HelpBox("WebRtcAudioDsp is not enabled, AEC will not be used.", MessageType.Warning);
             }
             if (this.recorder != null && this.recorder.SourceType != Recorder.InputSourceType.Microphone)
             {
@@ -80,7 +80,10 @@ namespace Photon.Voice.Unity.Editor
                 EditorGUILayout.PropertyField(this.bypassSp, new GUIContent("Bypass", "Bypass WebRTC Audio DSP"));
                 bypassed = this.bypassSp.boolValue;
             }
-
+            #if UNITY_ANDROID
+            SerializedObject serializedObject = new SerializedObject(this.recorder);
+            SerializedProperty serializedProperty = serializedObject.FindProperty("nativeAndroidMicrophoneSettings");
+            #endif
             if (!bypassed)
             {
                 if (isInSceneInPlayMode)
@@ -90,7 +93,14 @@ namespace Photon.Voice.Unity.Editor
                     {
                         if (this.recorder.SourceType == Recorder.InputSourceType.Microphone && this.recorder.MicrophoneType == Recorder.MicType.Photon)
                         {
+                            #if UNITY_ANDROID
+                            if (serializedProperty.FindPropertyRelative("AcousticEchoCancellation").boolValue)
+                            {
+                                EditorGUILayout.HelpBox("You have enabled AEC here and are using a Photon Mic as input on the Recorder, which might add its own echo cancellation. Please use only one AEC algorithm.", MessageType.Warning);
+                            }
+                            #else
                             EditorGUILayout.HelpBox("You have enabled AEC here and are using a Photon Mic as input on the Recorder, which might add its own echo cancellation. Please use only one AEC algorithm.", MessageType.Warning);
+                            #endif
                         }
                         this.processor.ReverseStreamDelayMs = EditorGUILayout.IntField(new GUIContent("ReverseStreamDelayMs", "Reverse stream delay (hint for AEC) in Milliseconds"), this.processor.ReverseStreamDelayMs);
                         this.processor.AecHighPass = EditorGUILayout.Toggle(new GUIContent("AEC High Pass"), this.processor.AecHighPass);
@@ -98,6 +108,12 @@ namespace Photon.Voice.Unity.Editor
                     this.processor.AGC = EditorGUILayout.Toggle(new GUIContent("AGC", "Automatic Gain Control"), this.processor.AGC);
                     if (this.processor.AGC)
                     {
+                        #if UNITY_ANDROID
+                        if (serializedProperty.FindPropertyRelative("AutomaticGainControl").boolValue)
+                        {
+                            EditorGUILayout.HelpBox("You have enabled AGC here and are using a AGC from native plugin (Photon microphone type). Please use only one AGC algorithm.", MessageType.Warning);
+                        }
+                        #endif
                         this.processor.AgcCompressionGain = EditorGUILayout.IntField(new GUIContent("AGC Compression Gain"), this.processor.AgcCompressionGain);
                     }
                     if (this.processor.VAD && this.recorder.VoiceDetection)
@@ -107,6 +123,15 @@ namespace Photon.Voice.Unity.Editor
                     this.processor.VAD = EditorGUILayout.Toggle(new GUIContent("VAD", "Voice Activity Detection"), this.processor.VAD);
                     this.processor.HighPass = EditorGUILayout.Toggle(new GUIContent("HighPass", "High Pass Filter"), this.processor.HighPass);
                     this.processor.NoiseSuppression = EditorGUILayout.Toggle(new GUIContent("NoiseSuppression", "Noise Suppression"), this.processor.NoiseSuppression);
+                    if (this.processor.NoiseSuppression)
+                    {
+                        #if UNITY_ANDROID
+                        if (serializedProperty.FindPropertyRelative("NoiseSuppression").boolValue)
+                        {
+                            EditorGUILayout.HelpBox("You have enabled NS here and are using a NS from native plugin (Photon microphone type). Please use only one NS algorithm.", MessageType.Warning);
+                        }
+                        #endif
+                    }
                 }
                 else
                 {
@@ -115,7 +140,14 @@ namespace Photon.Voice.Unity.Editor
                     {
                         if (this.recorder.SourceType == Recorder.InputSourceType.Microphone && this.recorder.MicrophoneType == Recorder.MicType.Photon)
                         {
+                            #if UNITY_ANDROID
+                            if (serializedProperty.FindPropertyRelative("AcousticEchoCancellation").boolValue)
+                            {
+                                EditorGUILayout.HelpBox("You have enabled AEC here and are using AEC from native plugin (Photon microphone type). Please use only one AEC algorithm.", MessageType.Warning);
+                            }
+                            #else
                             EditorGUILayout.HelpBox("You have enabled AEC here and are using a Photon Mic as input on the Recorder, which might add its own echo cancellation. Please use only one AEC algorithm.", MessageType.Warning);
+                            #endif
                         }
                         EditorGUILayout.PropertyField(this.reverseStreamDelayMsSp,
                             new GUIContent("ReverseStreamDelayMs", "Reverse stream delay (hint for AEC) in Milliseconds"));
@@ -124,6 +156,12 @@ namespace Photon.Voice.Unity.Editor
                     EditorGUILayout.PropertyField(this.agcSp, new GUIContent("AGC", "Automatic Gain Control"));
                     if (this.agcSp.boolValue)
                     {
+                        #if UNITY_ANDROID
+                        if (serializedProperty.FindPropertyRelative("AutomaticGainControl").boolValue)
+                        {
+                            EditorGUILayout.HelpBox("You have enabled AGC here and are using a AGC from native plugin (Photon microphone type). Please use only one AGC algorithm.", MessageType.Warning);
+                        }
+                        #endif
                         EditorGUILayout.PropertyField(this.agcCompressionGainSp, new GUIContent("AGC Compression Gain"));
                     }
                     if (this.vadSp.boolValue && this.recorder.VoiceDetection)
@@ -133,6 +171,15 @@ namespace Photon.Voice.Unity.Editor
                     EditorGUILayout.PropertyField(this.vadSp, new GUIContent("VAD", "Voice Activity Detection"));
                     EditorGUILayout.PropertyField(this.highPassSp, new GUIContent("HighPass", "High Pass Filter"));
                     EditorGUILayout.PropertyField(this.noiseSuppressionSp, new GUIContent("NoiseSuppression", "Noise Suppression"));
+                    if (this.noiseSuppressionSp.boolValue)
+                    {
+                        #if UNITY_ANDROID
+                        if (serializedProperty.FindPropertyRelative("NoiseSuppression").boolValue)
+                        {
+                            EditorGUILayout.HelpBox("You have enabled NS here and are using a NS from native plugin (Photon microphone type). Please use only one NS algorithm.", MessageType.Warning);
+                        }
+                        #endif
+                    }
                 }
             }
                 

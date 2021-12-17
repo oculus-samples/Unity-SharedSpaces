@@ -117,7 +117,9 @@ namespace Photon.Voice
                 {
                     flags = (FrameFlags)content[3];
                 }
-                this.voiceClient.onFrame(channelId, playerId, voiceId, evNumber, new FrameBuffer(receivedBytes, flags), playerId == localPlayerId);
+                var buffer = new FrameBuffer(receivedBytes, flags);
+                this.voiceClient.onFrame(channelId, playerId, voiceId, evNumber, ref buffer, playerId == localPlayerId);
+                buffer.Release();
             }
         }
 

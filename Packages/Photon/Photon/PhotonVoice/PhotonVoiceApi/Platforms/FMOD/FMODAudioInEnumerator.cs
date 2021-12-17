@@ -5,33 +5,16 @@ using FMODLib = FMOD;
 
 namespace Photon.Voice.FMOD
 {
-    public class AudioInEnumerator : IDeviceEnumerator
+    public class AudioInEnumerator : DeviceEnumeratorBase
     {
         const int NAME_MAX_LENGTH = 1000;
         const string LOG_PREFIX = "[PV] [FMOD] AudioInEnumerator: ";
-
-        private DeviceInfo[] devices = new DeviceInfo[0];
-        ILogger logger;
-
-        public AudioInEnumerator(ILogger logger)
+        public AudioInEnumerator(ILogger logger) : base(logger)
         {
-            this.logger = logger;
             Refresh();
         }
 
-        public bool IsSupported => true;
-
-        public IEnumerable<DeviceInfo> Devices
-        {
-            get
-            {
-                return devices;
-            }
-        }
-
-        public string Error { get; private set; }
-
-        public void Refresh()
+        public override void Refresh()
         {            
             FMODLib.RESULT res = FMODUnity.RuntimeManager.CoreSystem.getRecordNumDrivers(out int numDriv, out int numCon);
             if (res != FMODLib.RESULT.OK)
@@ -41,7 +24,7 @@ namespace Photon.Voice.FMOD
                 return;
             }
 
-            devices = new DeviceInfo[numDriv];
+            devices = new List<DeviceInfo>();
             for (int id = 0; id < numDriv; id++)
             {
                 res = FMODUnity.RuntimeManager.CoreSystem.getRecordDriverInfo(id, out string name, NAME_MAX_LENGTH, out Guid guid, out int systemRate, out FMODLib.SPEAKERMODE speakerMode, out int speakerModeChannels, out FMODLib.DRIVER_STATE state);
@@ -51,11 +34,11 @@ namespace Photon.Voice.FMOD
                     logger.LogError(LOG_PREFIX + Error);
                     return;
                 }
-                devices[id] = new DeviceInfo(id, name);
+                devices.Add(new DeviceInfo(id, name));
             }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
         }
     }

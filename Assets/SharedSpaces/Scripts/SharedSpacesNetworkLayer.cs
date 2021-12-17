@@ -4,10 +4,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using MLAPI;
-using MLAPI.Transports.Tasks;
-using MLAPI.Transports.PhotonRealtime;
+using Unity.Netcode;
+using Netcode.Transports.PhotonRealtime;
 using Photon.Realtime;
+using System.Net.WebSockets;
 
 [RequireComponent(typeof(PhotonRealtimeTransport))]
 public class SharedSpacesNetworkLayer : MonoBehaviour, IConnectionCallbacks, IInRoomCallbacks
@@ -51,25 +51,23 @@ public class SharedSpacesNetworkLayer : MonoBehaviour, IConnectionCallbacks, IIn
 
     private IEnumerator StartHost()
     {
-        SocketTasks startHost = NetworkManager.Singleton.StartHost();
+        NetworkManager.Singleton.StartHost();
         photonRealtime.Client.AddCallbackTarget(this);
 
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
-        yield return new WaitUntil(() => startHost.IsDone);
 
         clientState = ClientState.Connected;
 
         StartHostCallback.Invoke();
 
         Debug.LogWarning("You are the host.");
+        yield break;
     }
 
     private IEnumerator StartClient()
     {
-        SocketTasks startClient = NetworkManager.Singleton.StartClient();
+        NetworkManager.Singleton.StartClient();
         photonRealtime.Client.AddCallbackTarget(this);
-
-        yield return new WaitUntil(() => startClient.IsDone);
 
         // It seems that NetworkManager on the client side sometimes doesn't update the ConnectedClients dictionary fast enough
         yield return new WaitUntil(() => NetworkManager.Singleton.ConnectedClients.ContainsKey(NetworkManager.Singleton.LocalClientId));
@@ -84,25 +82,23 @@ public class SharedSpacesNetworkLayer : MonoBehaviour, IConnectionCallbacks, IIn
 
     private IEnumerator RestoreHost()
     {
-        SocketTasks startHost = NetworkManager.Singleton.StartHost();
+        NetworkManager.Singleton.StartHost();
         photonRealtime.Client.AddCallbackTarget(this);
 
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
-        yield return new WaitUntil(() => startHost.IsDone);
 
         clientState = ClientState.Connected;
 
         RestoreHostCallback.Invoke();
 
         Debug.LogWarning("You are the host.");
+        yield break;
     }
 
     private IEnumerator RestoreClient()
     {
-        SocketTasks startClient = NetworkManager.Singleton.StartClient();
+        NetworkManager.Singleton.StartClient();
         photonRealtime.Client.AddCallbackTarget(this);
-
-        yield return new WaitUntil(() => startClient.IsDone);
 
         // It seems that NetworkManager on the client side sometimes doesn't update the ConnectedClients dictionary fast enough
         yield return new WaitUntil(() => NetworkManager.Singleton.ConnectedClients.ContainsKey(NetworkManager.Singleton.LocalClientId));
@@ -208,8 +204,7 @@ public class SharedSpacesNetworkLayer : MonoBehaviour, IConnectionCallbacks, IIn
         photonRealtime.RoomName = room;
         clientState = ClientState.SwitchingPhotonRealtimeRoom;
 
-        if (NetworkManager.Singleton.IsHost) NetworkManager.Singleton.StopHost();
-        else                                 NetworkManager.Singleton.StopClient();
+        NetworkManager.Singleton.Shutdown();
     }
 
     // no need to implement them at the moment

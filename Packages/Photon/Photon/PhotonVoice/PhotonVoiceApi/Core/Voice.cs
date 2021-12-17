@@ -186,6 +186,8 @@ namespace Photon.Voice
             this.encoder.Output = sendFrame;
         }
 
+        protected string shortName { get { return "v#" + id + "ch#" + voiceClient.channelStr(channelId); } }
+
         internal string Name { get { return "Local " + info.Codec + " v#" + id + " ch#" + voiceClient.channelStr(channelId); } }
         internal string LogPrefix { get { return "[PV] " + Name; } }
 
@@ -365,11 +367,11 @@ namespace Photon.Voice
             });
 #else
             var t = new Thread(() => decodeThread());
-            t.Name = LogPrefix + " decode";
+            Util.SetThreadName(t, "[PV] Dec" + shortName);
             t.Start();
 #endif
         }
-
+        private string shortName { get { return "v#" + voiceId + "ch#" + voiceClient.channelStr(channelId) + "p#" + playerId; } }
         public string Name { get { return "Remote " + Info.Codec + " v#" + voiceId + " ch#" + voiceClient.channelStr(channelId) + " p#" + playerId; } }
         public string LogPrefix { get { return "[PV] " + Name; } }
        
@@ -398,7 +400,7 @@ namespace Photon.Voice
             return (byte)(latest - (last + 1));
         }
 
-        internal void receiveBytes(FrameBuffer receivedBytes, byte evNumber)
+        internal void receiveBytes(ref FrameBuffer receivedBytes, byte evNumber)
         {            
             // receive-gap detection and compensation
             if (evNumber != this.lastEvNumber) // skip check for 1st event 
@@ -421,15 +423,15 @@ namespace Photon.Voice
                     this.voiceClient.logger.LogWarning(LogPrefix + " evNumer: " + evNumber + " playerVoice.lastEvNumber: " + this.lastEvNumber + " late: " + (255 - missing) + " r/b " + receivedBytes.Length);
                 }
             }
-            this.receiveFrame(receivedBytes);
+            this.receiveFrame(ref receivedBytes);
         }
 
         Queue<FrameBuffer> frameQueue = new Queue<FrameBuffer>();
         AutoResetEvent frameQueueReady = new AutoResetEvent(false);
         int flushingFramePosInQueue = -1; // if >= 0, we are flushing since the frame at this (dynamic) position got into the queue: process the queue w/o delays until this frame encountered
-        FrameBuffer nullFrame = new FrameBuffer(null, 0);
+        FrameBuffer nullFrame = new FrameBuffer();
 
-        void receiveFrame(FrameBuffer frame)
+        void receiveFrame(ref FrameBuffer frame)
         {
             lock (disposeLock) // sync with Dispose and decodeThread 'finally'
             {
@@ -439,11 +441,11 @@ namespace Photon.Voice
                 lock (frameQueue)
                 {                    
                     frameQueue.Enqueue(frame);
+                    frame.Retain();
                     if ((frame.Flags & FrameFlags.EndOfStream) != 0)
                     {
                         flushingFramePosInQueue = frameQueue.Count - 1;
                     }
-
                 }
                 frameQueueReady.Set();
             }
@@ -579,7 +581,6 @@ namespace Photon.Voice
 #endif                
                 decoder.Open(Info);
 
-                byte[] arrCopy = null;
                 while (!disposed)
                 {
                     frameQueueReady.WaitOne(); // Wait until data is pushed to the queue or Dispose signals.
@@ -623,8 +624,9 @@ namespace Photon.Voice
                         }
                         if (haveFrame)
                         {
-                            decoder.Input(f.GetArrayAndRelease(ref arrCopy), f.Flags);
-                        }
+                            decoder.Input(ref f);
+                            f.Release();
+                        }                        
                     }
 
                     //#if UNITY_5_3_OR_NEWER
@@ -652,7 +654,10 @@ namespace Photon.Voice
 #endif
                 lock (frameQueue)
                 {
-                    frameQueue.Clear();
+                    while (frameQueue.Count > 0)
+                    {
+                        frameQueue.Dequeue().Release();
+                    }
                 }
                 decoder.Dispose();
 #if UNITY_ANDROID
