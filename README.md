@@ -21,7 +21,7 @@ Click "Import TMP Essentials" to import the necessary TextMesh Pro assets.
 ## Setting up Photon
 
 To get the sample working, you will need to configure the NetDriver with your own Photon account. Their base plan is free.
-- Visit [photonengine.com](photonengine.com) and [create an account](https://doc.photonengine.com/en-us/realtime/current/getting-started/obtain-your-app-id)
+- Visit [photonengine.com](https://www.photonengine.com) and [create an account](https://doc.photonengine.com/en-us/realtime/current/getting-started/obtain-your-app-id)
 - From your Photon dashboard, click “Create A New App”
 - Fill out the form making sure to set type to “Photon Realtime”. Then click Create.
 
