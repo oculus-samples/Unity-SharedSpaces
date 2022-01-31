@@ -10,7 +10,17 @@ See the [CONTRIBUTING](CONTRIBUTING.md) file for how to help out.
 
 ## Getting started
 
-To run the showcase, clone this repo and open it in *Unity 2020.3.15f1* or newer. Load the [Assets/SharedSpaces/Scenes/Startup](Assets/SharedSpaces/Scenes/Startup.unity) scene.
+First, ensure you have Git LFS installed by running this command:
+```sh
+git lfs install
+```
+
+Then, clone this repo using the "Code" button above, or this command:
+```sh
+git clone https://github.com/oculus-samples/Unity-SharedSpaces.git
+```
+
+To run the showcase, open the project folder in *Unity 2020.3.15f1* or newer. Load the [Assets/SharedSpaces/Scenes/Startup](Assets/SharedSpaces/Scenes/Startup.unity) scene.
 
 After loading the scene, you may encounter this pop-up:
 
