@@ -1,6 +1,5 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+// Copyright (c) Facebook, Inc. and its affiliates.
+
 using UnityEngine;
 
 public static class SharedSpacesExtensions
