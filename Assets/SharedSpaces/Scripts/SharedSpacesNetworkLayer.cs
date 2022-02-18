@@ -69,15 +69,20 @@ public class SharedSpacesNetworkLayer : MonoBehaviour, IConnectionCallbacks, IIn
         NetworkManager.Singleton.StartClient();
         photonRealtime.Client.AddCallbackTarget(this);
 
-        // It seems that NetworkManager on the client side sometimes doesn't update the ConnectedClients dictionary fast enough
-        yield return new WaitUntil(() => NetworkManager.Singleton.ConnectedClients.ContainsKey(NetworkManager.Singleton.LocalClientId));
-        yield return new WaitUntil(() => NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject);
+        yield return WaitForLocalPlayerObject();
+        if (clientState != ClientState.StartingClient)
+            yield break;
 
         clientState = ClientState.Connected;
 
         StartClientCallback.Invoke();
 
         Debug.LogWarning("You are a client.");
+    }
+
+    private static WaitUntil WaitForLocalPlayerObject()
+    {
+        return new WaitUntil(() => NetworkManager.Singleton.LocalClient != null && NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject() != null);
     }
 
     private IEnumerator RestoreHost()
@@ -100,9 +105,9 @@ public class SharedSpacesNetworkLayer : MonoBehaviour, IConnectionCallbacks, IIn
         NetworkManager.Singleton.StartClient();
         photonRealtime.Client.AddCallbackTarget(this);
 
-        // It seems that NetworkManager on the client side sometimes doesn't update the ConnectedClients dictionary fast enough
-        yield return new WaitUntil(() => NetworkManager.Singleton.ConnectedClients.ContainsKey(NetworkManager.Singleton.LocalClientId));
-        yield return new WaitUntil(() => NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject);
+        yield return WaitForLocalPlayerObject();
+        if (clientState != ClientState.RestoringClient)
+            yield break;
 
         clientState = ClientState.Connected;
 
@@ -113,7 +118,18 @@ public class SharedSpacesNetworkLayer : MonoBehaviour, IConnectionCallbacks, IIn
 
     public void OnDisconnected(DisconnectCause cause)
     {
+        Debug.LogWarning($"OnDisconnected: {cause}");
+
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
+
+        // For some reason, sometimes another shutdown is coming,
+        // but won't progress unless you start the client.
+        if (cause is DisconnectCause.DisconnectByClientLogic && NetworkManager.Singleton.ShutdownInProgress)
+        {
+            NetworkManager.Singleton.StartClient();
+            photonRealtime.Client.AddCallbackTarget(this);
+            return;
+        }
 
         switch (clientState)
         {
@@ -182,7 +198,14 @@ public class SharedSpacesNetworkLayer : MonoBehaviour, IConnectionCallbacks, IIn
 
     private void OnClientConnected(ulong clientId)
     {
-        OnClientConnectedCallback.Invoke(clientId);
+        IEnumerator Routine()
+        {
+            // For some reason, OnClientConnectedCallback is called before OnServerStarted, so wait
+            if (NetworkManager.Singleton.IsHost)
+                yield return new WaitUntil(() => clientState == ClientState.Connected);
+            OnClientConnectedCallback.Invoke(clientId);
+        }
+        StartCoroutine(Routine());
     }
 
     private void OnClientDisconnected(ulong clientId)

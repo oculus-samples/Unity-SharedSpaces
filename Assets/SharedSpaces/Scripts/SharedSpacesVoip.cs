@@ -8,6 +8,7 @@ using UnityEngine.Android;
 using Unity.Netcode;
 using Photon.Voice.Unity;
 using Photon.Voice.Unity.UtilityScripts;
+using System.Linq;
 
 public class SharedSpacesVoip : MonoBehaviour
 {
@@ -36,14 +37,19 @@ public class SharedSpacesVoip : MonoBehaviour
         sharedSpacesRecorder = Instantiate(sharedSpacesRecorderPrefab, parent);
 
         VoiceConnection voiceConnection = sharedSpacesRecorder.GetComponent<VoiceConnection>();
-        voiceConnection.SpeakerFactory = SpeakerFactory;
+        SharedSpacesPlayerState playerState = FindObjectsOfType<SharedSpacesPlayerState>().First(p => p.IsLocalPlayer);
+        voiceConnection.Client.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable
+        {
+            [nameof(NetworkObject.NetworkObjectId)] = (int)playerState.NetworkObjectId,
+        });
+        voiceConnection.SpeakerFactory = (playerId, voiceId, userData) => CreateSpeaker(playerId, voiceConnection);
 
         StartCoroutine(JoinPhotonVoiceRoom());
     }
 
     private IEnumerator JoinPhotonVoiceRoom()
     {
-        yield return new WaitUntil(() => SharedSpacesSession.photonVoiceRoom != "");
+        yield return new WaitUntil(() => SharedSpacesSession.photonVoiceRoom != "" && sharedSpacesRecorder != null);
 
 #if !UNITY_EDITOR && !UNITY_STANDALONE_WIN
         if (Permission.HasUserAuthorizedPermission(Permission.Microphone))
@@ -58,21 +64,16 @@ public class SharedSpacesVoip : MonoBehaviour
 #endif
     }
 
-    private Speaker SpeakerFactory(int playerId, byte voiceId, object userData)
+    private Speaker CreateSpeaker(int playerId, VoiceConnection voiceConnection)
     {
-        SharedSpacesPlayerState player = null;
-        // The mapping between Unity.Netcode client IDs and Photon client IDs is as below.
-        // Check GetMlapiClientId(), line 470, of PhotonRealtimeTransport.cs
-        int targetId = playerId == 1 ? 0 : playerId + 1;
-        
-        foreach (SharedSpacesPlayerState p in FindObjectsOfType<SharedSpacesPlayerState>())
-        {
-            if (p.GetComponent<NetworkObject>().OwnerClientId == (ulong)targetId)
-            {
-                player = p;
-                break;
-            }
-        }
+        var actor = voiceConnection.Client.LocalPlayer.Get(playerId);
+        Debug.Assert(actor != null, $"Could not find voice client for Player #{playerId}");
+
+        actor.CustomProperties.TryGetValue(nameof(NetworkObject.NetworkObjectId), out var networkId);
+        Debug.Assert(networkId != null, $"Could not find network object id for Player #{playerId}");
+
+        NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue((ulong)(int)networkId, out var player);
+        Debug.Assert(player != null, $"Could not find player instance for Player #{playerId} network id #{networkId}");
         
         Speaker speaker = Instantiate(sharedSpacesSpeakerPrefab, player.transform).GetComponent<Speaker>();
         float headHeight = speaker.GetComponentInParent<CharacterController>().height;

@@ -8,7 +8,7 @@ public class SharedSpacesPlayerState : NetworkBehaviour
 {
     public NetworkVariable<Color> color = new NetworkVariable<Color>();
     public NetworkVariable<FixedString128Bytes> username = new NetworkVariable<FixedString128Bytes>();
-    public NetworkVariable<bool> masterclient = new NetworkVariable<bool>();
+    public NetworkVariable<bool> masterclient = new NetworkVariable<bool>(true);
     public SharedSpacesLocalPlayerState localPlayerState { get; private set; }
 
     private SharedSpacesPlayerColor playerColor;
@@ -76,9 +76,6 @@ public class SharedSpacesPlayerState : NetworkBehaviour
 
     private void Start()
     {
-        // This will get set by the owner, but the OnValueChanged action only triggers if the value changes. Setting to match prefab default state (enabled).
-        masterclient.Value = true;
-
         if (!localPlayerState) return;
 
         localPlayerState.playerCamera.Refocus();
@@ -86,13 +83,6 @@ public class SharedSpacesPlayerState : NetworkBehaviour
         SetStateServerRpc(localPlayerState.color, localPlayerState.username);
     }
 
-    /*****************************WORKAROUND*****************************/
-    /*  These RPCs are workarounds. It seems when the write permission  */
-    /*  on the network variables is set to OwnerOnly, it causes either  */
-    /*  delayed synchronization or no synchronization at all. Setting   */
-    /*  the write permission to ServerOnly seems to fix this issue.     */
-    /*  The drawback is the need for these RPCs to ask the server to    */
-    /*  update the values of the network variables.                     */
     [ServerRpc]
     private void SetStateServerRpc(Color color_, string username_)
     {
@@ -115,7 +105,9 @@ public class SharedSpacesPlayerState : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (!GetComponent<NetworkObject>().IsOwner) return;
+        base.OnNetworkSpawn();
+
+        if (!IsOwner) return;
 
         if (!localPlayerState)
         {
@@ -129,8 +121,7 @@ public class SharedSpacesPlayerState : NetworkBehaviour
                 GetComponent<SharedSpacesInputs>()
             );
 
-            color.Value = localPlayerState.color;
-            username.Value = localPlayerState.username;
+            SetStateServerRpc(localPlayerState.color, localPlayerState.username);
             SetMasterServerRpc(IsHost);
         }
     }

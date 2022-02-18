@@ -3,6 +3,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerInput))]
@@ -60,6 +61,7 @@ public class SharedSpacesPlayerController : NetworkBehaviour
     private int _animIDJump;
     private int _animIDFreeFall;
     private int _animIDMotionSpeed;
+    private Dictionary<int, (float f, bool b)> _animPropCache = new Dictionary<int, (float f, bool b)>();
 
     private Animator _animator;
     private CharacterController _controller;
@@ -117,7 +119,7 @@ public class SharedSpacesPlayerController : NetworkBehaviour
         // update animator if using character
         if (_hasAnimator)
         {
-            _animator.SetBool(_animIDGrounded, Grounded);
+            SetAnimatorBool(_animIDGrounded, Grounded);
         }
     }
 
@@ -177,8 +179,8 @@ public class SharedSpacesPlayerController : NetworkBehaviour
         // update animator if using character
         if (_hasAnimator)
         {
-            _animator.SetFloat(_animIDSpeed, _animationBlend);
-            _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
+            SetAnimatorFloat(_animIDSpeed, _animationBlend);
+            SetAnimatorFloat(_animIDMotionSpeed, inputMagnitude);
         }
     }
 
@@ -192,8 +194,8 @@ public class SharedSpacesPlayerController : NetworkBehaviour
             // update animator if using character
             if (_hasAnimator)
             {
-                _animator.SetBool(_animIDJump, false);
-                _animator.SetBool(_animIDFreeFall, false);
+                SetAnimatorBool(_animIDJump, false);
+                SetAnimatorBool(_animIDFreeFall, false);
             }
 
             // stop our velocity dropping infinitely when grounded
@@ -211,7 +213,7 @@ public class SharedSpacesPlayerController : NetworkBehaviour
                 // update animator if using character
                 if (_hasAnimator)
                 {
-                    _animator.SetBool(_animIDJump, true);
+                    SetAnimatorBool(_animIDJump, true);
                 }
             }
 
@@ -236,7 +238,7 @@ public class SharedSpacesPlayerController : NetworkBehaviour
                 // update animator if using character
                 if (_hasAnimator)
                 {
-                    _animator.SetBool(_animIDFreeFall, true);
+                    SetAnimatorBool(_animIDFreeFall, true);
                 }
             }
 
@@ -268,5 +270,43 @@ public class SharedSpacesPlayerController : NetworkBehaviour
 
         // when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
         Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
+    }
+
+    [ServerRpc(RequireOwnership = true)]
+    private void SetAnimatorFloatServerRpc(int id, float value)
+    {
+        _hasAnimator = _hasAnimator || TryGetComponent(out _animator);
+        if (_hasAnimator)
+            _animator.SetFloat(id, value);
+    }
+    [ServerRpc(RequireOwnership = true)]
+    private void SetAnimatorBoolServerRpc(int id, bool value)
+    {
+        _hasAnimator = _hasAnimator || TryGetComponent(out _animator);
+        if (_hasAnimator)
+            _animator.SetBool(id, value);
+    }
+
+    private void SetAnimatorFloat(int id, float value)
+    {
+        if (_hasAnimator && _animPropCache.TryGetValue(id, out var current) && current.f.IsCloseTo(value))
+            return;
+
+        SetAnimatorFloatServerRpc(id, value);
+        _animPropCache[id] = (value, false);
+        
+        if (_hasAnimator)
+            _animator.SetFloat(id, value);
+    }
+    private void SetAnimatorBool(int id, bool value)
+    {
+        if (_hasAnimator && _animPropCache.TryGetValue(id, out var current) && current.b == value)
+            return;
+
+        SetAnimatorBoolServerRpc(id, value);
+        _animPropCache[id] = (0.0f, value);
+        
+        if (_hasAnimator)
+            _animator.SetBool(id, value);
     }
 }

@@ -136,7 +136,7 @@ public class SharedSpacesApplication : MonoBehaviour
 
     private void OnClientStarted()
     {
-        NetworkObject player = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject;
+        NetworkObject player = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
         voip.StartVoip(player.transform);
     }
 
@@ -155,7 +155,7 @@ public class SharedSpacesApplication : MonoBehaviour
 
     private void OnClientRestored()
     {
-        NetworkObject player = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject;
+        NetworkObject player = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
         voip.StartVoip(player.transform);
     }
 
