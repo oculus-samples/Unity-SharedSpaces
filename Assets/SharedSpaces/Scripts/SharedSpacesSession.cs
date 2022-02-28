@@ -10,13 +10,13 @@ public class SharedSpacesSession : NetworkBehaviour
     public static string photonVoiceRoom { get; private set; }
 
     private SharedSpacesSpawner spawner;
-    private SharedSpacesLocalPlayerState localPlayerState;
+
+    private SharedSpacesLocalPlayerState LocalPlayerState => SharedSpacesLocalPlayerState.Instance;
 
     private void Awake()
     {
         fallbackHostId = ulong.MaxValue;
         spawner = FindObjectOfType<SharedSpacesSpawner>();
-        localPlayerState = FindObjectOfType<SharedSpacesLocalPlayerState>();
         StartCoroutine(InitPhotonRoomName());
     }
 
@@ -118,8 +118,8 @@ public class SharedSpacesSession : NetworkBehaviour
 
         if (NetworkManager.Singleton.IsHost)
         {
-            yield return new WaitUntil(() => localPlayerState.username != "");
-            photonVoiceRoom = localPlayerState.username;
+            yield return new WaitUntil(() => LocalPlayerState.username != "");
+            photonVoiceRoom = LocalPlayerState.username;
         }
     }
 }

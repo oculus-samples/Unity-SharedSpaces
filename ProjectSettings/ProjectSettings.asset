@@ -681,7 +681,9 @@ PlayerSettings:
     4: CROSS_PLATFORM_INPUT;MOBILE_INPUT
     7: CROSS_PLATFORM_INPUT;MOBILE_INPUT
     14: MOBILE_INPUT
-  additionalCompilerArguments: {}
+  additionalCompilerArguments:
+    7:
+    - -warnaserror:0108
   platformArchitecture: {}
   scriptingBackend:
     Android: 1

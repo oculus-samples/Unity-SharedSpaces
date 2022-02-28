@@ -3,11 +3,10 @@
 using UnityEngine;
 using Oculus.Platform;
 
-public class SharedSpacesLocalPlayerState : MonoBehaviour
+public class SharedSpacesLocalPlayerState : Singleton<SharedSpacesLocalPlayerState>
 {
     public SharedSpacesCamera playerCamera;
 
-    // these are initialized by SharedSpacesStateManager
     [HideInInspector]
     public Color color;
     [HideInInspector]
@@ -15,13 +14,17 @@ public class SharedSpacesLocalPlayerState : MonoBehaviour
     [HideInInspector]
     public string applicationID;
 
+    public event System.Action OnChange;
+
     private void OnEnable()
     {
         DontDestroyOnLoad(this);
     }
 
-    private void Awake()
+    private new void Awake()
     {
+        base.Awake();
+        
         // for the time being, force unique session ID
         applicationID = GenerateApplicationID();
     }
@@ -30,6 +33,7 @@ public class SharedSpacesLocalPlayerState : MonoBehaviour
     {
         color = Random.ColorHSV();
         username = message.Data.DisplayName;
+        OnChange?.Invoke();
     }
 
     private string GenerateApplicationID()

@@ -9,11 +9,12 @@ public class SharedSpacesPlayerState : NetworkBehaviour
     public NetworkVariable<Color> color = new NetworkVariable<Color>();
     public NetworkVariable<FixedString128Bytes> username = new NetworkVariable<FixedString128Bytes>();
     public NetworkVariable<bool> masterclient = new NetworkVariable<bool>(true);
-    public SharedSpacesLocalPlayerState localPlayerState { get; private set; }
 
     private SharedSpacesPlayerColor playerColor;
     private SharedSpacesPlayerName playerName;
     private CharacterController characterController;
+
+    private SharedSpacesLocalPlayerState LocalPlayerState => IsOwner ? SharedSpacesLocalPlayerState.Instance : null;
 
     private void OnEnable()
     {
@@ -37,10 +38,12 @@ public class SharedSpacesPlayerState : NetworkBehaviour
     {
         base.OnDestroy();
         
-        if (!localPlayerState) return;
+        if (!LocalPlayerState) return;
 
-        localPlayerState.transform.position = transform.position;
-        localPlayerState.transform.rotation = transform.rotation;
+        LocalPlayerState.transform.position = transform.position;
+        LocalPlayerState.transform.rotation = transform.rotation;
+
+        LocalPlayerState.OnChange -= UpdateData;
     }
 
     private void OnColorChanged(Color oldColor, Color newColor)
@@ -61,26 +64,36 @@ public class SharedSpacesPlayerState : NetworkBehaviour
     private void RestoreTransform()
     {
         characterController.enabled = false;
-        transform.position += localPlayerState.transform.position;
-        transform.rotation  = localPlayerState.transform.rotation;
+        transform.position += LocalPlayerState.transform.position;
+        transform.rotation  = LocalPlayerState.transform.rotation;
         characterController.enabled = true;
     }
 
     public void SetColor()
     {
-        if (!localPlayerState) return;
+        if (!LocalPlayerState) return;
 
-        localPlayerState.color = Random.ColorHSV();
-        SetColorServerRpc(localPlayerState.color);
+        LocalPlayerState.color = Random.ColorHSV();
+        SetColorServerRpc(LocalPlayerState.color);
     }
 
     private void Start()
     {
-        if (!localPlayerState) return;
+        OnColorChanged(color.Value, color.Value);
+        OnUsernameChanged(username.Value, username.Value);
+        OnMasterclientChanged(masterclient.Value, masterclient.Value);
 
-        localPlayerState.playerCamera.Refocus();
+        if (!LocalPlayerState) return;
 
-        SetStateServerRpc(localPlayerState.color, localPlayerState.username);
+        LocalPlayerState.playerCamera.Refocus();
+        LocalPlayerState.OnChange += UpdateData;
+        
+        UpdateData();
+    }
+
+    private void UpdateData()
+    {
+        SetStateServerRpc(LocalPlayerState.color, LocalPlayerState.username);
     }
 
     [ServerRpc]
@@ -107,21 +120,14 @@ public class SharedSpacesPlayerState : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
-        if (!IsOwner) return;
-
-        if (!localPlayerState)
+        if (LocalPlayerState)
         {
-            localPlayerState = FindObjectOfType<SharedSpacesLocalPlayerState>();
-        }
-
-        if (localPlayerState)
-        {
-            localPlayerState.playerCamera.Init(
+            LocalPlayerState.playerCamera.Init(
                 characterController,
                 GetComponent<SharedSpacesInputs>()
             );
 
-            SetStateServerRpc(localPlayerState.color, localPlayerState.username);
+            SetStateServerRpc(LocalPlayerState.color, LocalPlayerState.username);
             SetMasterServerRpc(IsHost);
         }
     }

@@ -62,11 +62,12 @@ public class SharedSpacesApplication : MonoBehaviour
     public SharedSpacesSceneLoader sceneLoader;
     public SharedSpacesSpawner spawner;
     public SharedSpacesVoip voip;
-    public SharedSpacesLocalPlayerState localPlayerState;
     public SharedSpacesGroupPresenceState groupPresenceState { get; private set; }
 
     private SharedSpacesSession session;
     private LaunchType launchType;
+
+    private SharedSpacesLocalPlayerState LocalPlayerState => SharedSpacesLocalPlayerState.Instance;
 
     private void OnEnable()
     {
@@ -96,8 +97,8 @@ public class SharedSpacesApplication : MonoBehaviour
             {
                 session.RequestSpawnServerRpc(
                     clientId,
-                    localPlayerState.transform.position,
-                    localPlayerState.transform.rotation
+                    LocalPlayerState.transform.position,
+                    LocalPlayerState.transform.rotation
                 );
             }
             else
@@ -146,8 +147,8 @@ public class SharedSpacesApplication : MonoBehaviour
 
         NetworkObject player = spawner.SpawnPlayer(
             NetworkManager.Singleton.LocalClientId,
-            localPlayerState.transform.position,
-            localPlayerState.transform.rotation
+            LocalPlayerState.transform.position,
+            LocalPlayerState.transform.rotation
         );
 
         voip.StartVoip(player.transform);
@@ -169,8 +170,7 @@ public class SharedSpacesApplication : MonoBehaviour
         Core.AsyncInitialize().OnComplete(OnOculusPlatformInitialized);
 
 #if !UNITY_EDITOR && !UNITY_STANDALONE_WIN
-
-        yield return new WaitUntil(() => localPlayerState.username != "");
+        yield return new WaitUntil(() => LocalPlayerState.username != "");
 #else
         launchType = LaunchType.Normal;
 #endif
@@ -182,7 +182,7 @@ public class SharedSpacesApplication : MonoBehaviour
 
             StartCoroutine(groupPresenceState.Set(
                     "Lobby",
-                    "Lobby-" + localPlayerState.applicationID,
+                    "Lobby-" + LocalPlayerState.applicationID,
                     "",
                     true
                 )
@@ -236,7 +236,7 @@ public class SharedSpacesApplication : MonoBehaviour
         // At the moment, Platform.Users.GetLoggedInUser() seems to only be returning the user ID.
         // Display name is blank.
         // Platform.Users.Get(ulong userID) returns the display name.
-        Users.Get(message.Data.ID).OnComplete(localPlayerState.Init);
+        Users.Get(message.Data.ID).OnComplete(LocalPlayerState.Init);
     }
 
     private void OnJoinIntentReceived(Message<Oculus.Platform.Models.GroupPresenceJoinIntent> message)
@@ -262,7 +262,7 @@ public class SharedSpacesApplication : MonoBehaviour
         {
             string lobbySessionID = message.Data.DestinationApiName == "Lobby"
                 ? messageLobbySessionId
-                : "Lobby-" + localPlayerState.applicationID;
+                : "Lobby-" + LocalPlayerState.applicationID;
 
             groupPresenceState = new SharedSpacesGroupPresenceState();
 
