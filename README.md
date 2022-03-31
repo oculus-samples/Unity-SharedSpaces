@@ -280,3 +280,13 @@ SharedSpaces has four destinations: a Lobby, three private rooms (the red, green
 | [PurpleRoom](./Media/dashboard/dashboard_destination_purpleroom.png) | {"map":"PurpleRoom","public_room_name":"ThePurpleRoom"} | Purple Room | The Purple room |
 
 In addition to these settings, you need to set __Deeplink Type__ to __Enabled__ and add an image for your destination.  In the case of SharedSpaces, the destination is __Audience__ is set to __Everyone__.
+
+## 3. <a id="D3">Data Use Checkup</a>
+
+You will need to request access to platform data needed by SharedSpaces. Under __Data Use Checkup__, add the following items and submit for certification.
+
++  User ID
++  User Profile
++  Deep Linking
++  Friends
++  Invites
