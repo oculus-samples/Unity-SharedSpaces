@@ -269,7 +269,7 @@ You need to recreate the SharedSpaces destinations in your own application.  Des
 	<img src="./Media/dashboard/dashboard_destinations.png"  width="800">
 </div>
 
-SharedSpaces has four destinations: a Lobby, three private rooms (the red, green and blue rooms) and one public room (the purple room).  Here are the settings for each of them.
+SharedSpaces has five destinations: a Lobby, three private rooms (the red, green and blue rooms), and one public room (the purple room).  Here are the settings for each of them.
 
 | API Name | Deeplink Message | Display Name | Description |
 | :--- | :--- | :--- | :--- |
