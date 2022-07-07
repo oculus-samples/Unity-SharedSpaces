@@ -4,7 +4,7 @@
 
 SharedSpaces was built by the VR Developer Tools team to demonstrate how you can quickly get people together in VR using the Oculus Social Platform APIs.  This version was built for the Unity engine using [Photon Realtime](https://github.com/Unity-Technologies/multiplayer-community-contributions/tree/main/Transports/com.community.netcode.transport.photon-realtime) as the transport layer and [Unity Netcode for GameObjects](https://github.com/Unity-Technologies/com.unity.netcode.gameobjects). Other versions are available, in particular one built for the [Unreal Engine](https://github.com/oculus-samples/Unreal-SharedSpaces).
 
-This codebase is available both as a reference and as a template for multiplayer VR games. Unity-SharedSpaces is under the license found [here](LICENSE) unless otherwise specified.
+This codebase is available both as a reference and as a template for multiplayer VR games. The [Oculus License](LICENSE) applies to the SDK and supporting material. The MIT License applies to only certain, clearly marked documents. If an individual file does not indicate which license it is subject to, then the Oculus License applies.
 
 See the [CONTRIBUTING](CONTRIBUTING.md) file for how to help out.
 
