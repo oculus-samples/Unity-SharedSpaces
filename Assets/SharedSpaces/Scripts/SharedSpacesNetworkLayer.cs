@@ -48,6 +48,7 @@ public class SharedSpacesNetworkLayer : MonoBehaviour, IConnectionCallbacks, IIn
     {
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         photonRealtime.RoomName = room;
+        clientState = ClientState.StartingHost;
         StartCoroutine(StartHost());
     }
 
@@ -57,13 +58,15 @@ public class SharedSpacesNetworkLayer : MonoBehaviour, IConnectionCallbacks, IIn
         photonRealtime.Client.AddCallbackTarget(this);
 
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+        yield return new WaitUntil(() => photonRealtime.Client.InRoom);
+        if (clientState != ClientState.StartingHost)
+            yield break;
 
         clientState = ClientState.Connected;
 
         StartHostCallback.Invoke();
 
         Debug.LogWarning("You are the host.");
-        yield break;
     }
 
     private IEnumerator StartClient()

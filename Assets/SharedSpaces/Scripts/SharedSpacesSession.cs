@@ -24,6 +24,11 @@ public class SharedSpacesSession : NetworkBehaviour
 
     public void DetermineFallbackHost(ulong clientId)
     {
+        // fallback host will never be the current host
+        if (clientId == NetworkManager.Singleton.ServerClientId)
+        {
+            return;
+        }
         // if the new client that joined has a smaller id, 
         // make them the new fallback host
         if (clientId < fallbackHostId)

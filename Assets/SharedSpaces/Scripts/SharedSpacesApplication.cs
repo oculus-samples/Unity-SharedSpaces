@@ -91,7 +91,7 @@ public class SharedSpacesApplication : MonoBehaviour
             session.DetermineFallbackHost(clientId);
             session.SetPhotonVoiceRoom(clientId);
         }
-        else if (NetworkManager.Singleton.IsClient)
+        else if (NetworkManager.Singleton.IsClient && clientId == NetworkManager.Singleton.LocalClientId)
         {
             session = FindObjectOfType<SharedSpacesSession>();
 
