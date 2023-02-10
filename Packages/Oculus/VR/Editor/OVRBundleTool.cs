@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
+ *
+ * Licensed under the Oculus SDK License Agreement (the "License");
+ * you may not use the Oculus SDK except in compliance with the License,
+ * which is provided at the time of installation or download, or which
+ * otherwise accompanies this software in either electronic or hard copy form.
+ *
+ * You may obtain a copy of the License at
+ *
+ * https://developer.oculus.com/licenses/oculussdk/
+ *
+ * Unless required by applicable law or agreed to in writing, the Oculus SDK
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #if UNITY_EDITOR_WIN && UNITY_ANDROID
 using System;
 using System.Collections;
@@ -22,6 +42,7 @@ public class OVRBundleTool : EditorWindow
 	private static GUIStyle logBoxStyle;
 	private static GUIStyle statusStyle;
 	private static Vector2 logBoxSize;
+	private static Vector2 sceneScrollViewPos;
 
 	private bool forceRestart = false;
 	private bool showBundleManagement = false;
@@ -252,14 +273,17 @@ public class OVRBundleTool : EditorWindow
 			EditorGUILayout.LabelField(deployLabelTxt, GUI.skin.box, GUILayout.Width(60));
 			EditorGUILayout.EndHorizontal();
 
+			int scrollViewHeight = Math.Min(buildableScenes.Count * 21, 200);
+			sceneScrollViewPos = EditorGUILayout.BeginScrollView(sceneScrollViewPos, GUILayout.MaxHeight(scrollViewHeight));
 			foreach (EditorSceneInfo scene in buildableScenes)
 			{
 				EditorGUILayout.BeginHorizontal();
 				EditorGUILayout.LabelField(scene.sceneName, GUILayout.Width(sceneNameWidth + 8));
 				EditorGUILayout.LabelField(GetEnumDescription(scene.buildStatus), GUILayout.Width(80));
-				scene.shouldDeploy = EditorGUILayout.Toggle(scene.shouldDeploy, GUILayout.Width(50));
+				scene.shouldDeploy = EditorGUILayout.Toggle(scene.shouldDeploy, GUILayout.Width(30));
 				EditorGUILayout.EndHorizontal();
 			}
+			EditorGUILayout.EndScrollView();
 
 			EditorGUILayout.BeginHorizontal();
 			{

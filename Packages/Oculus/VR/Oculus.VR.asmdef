@@ -1,11 +1,13 @@
 {
     "name": "Oculus.VR",
+    "rootNamespace": "",
     "references": [
-        "GUID:15fc0a57446b3144c949da3e2b9737a9"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.XR.OpenXR"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
@@ -40,6 +42,11 @@
             "name": "com.unity.render-pipelines.universal",
             "expression": "10.0.0",
             "define": "USING_MRC_COMPATIBLE_URP_VERSION"
+        },
+        {
+            "name": "Unity",
+            "expression": "",
+            "define": "OVR_UNITY_ASSET_STORE"
         }
     ],
     "noEngineReferences": false

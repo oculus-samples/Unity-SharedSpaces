@@ -15,14 +15,19 @@ MonoBehaviour:
   m_StereoRenderingModeDesktop: 0
   m_StereoRenderingModeAndroid: 2
   SharedDepthBuffer: 1
+  DepthSubmission: 0
   DashSupport: 1
-  V2Signing: 1
   LowOverheadMode: 1
-  ProtectedContext: 0
-  FocusAware: 1
   OptimizeBufferDiscards: 1
   PhaseSync: 1
+  SymmetricProjection: 1
   SubsampledLayout: 0
+  FoveatedRenderingMethod: 0
+  LateLatching: 0
+  LateLatchingDebug: 0
+  EnableTrackingOriginStageMode: 0
+  SpaceWarp: 0
   TargetQuest: 1
   TargetQuest2: 1
+  TargetQuestPro: 1
   SystemSplashScreen: {fileID: 2800000, guid: c6a666b57827fba4c8de06a28ca70956, type: 3}
