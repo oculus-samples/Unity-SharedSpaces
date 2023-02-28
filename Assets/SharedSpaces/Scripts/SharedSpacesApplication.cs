@@ -337,6 +337,21 @@ public class SharedSpacesApplication : MonoBehaviour
         StartCoroutine(SwitchRoom(portalName, groupPresenceState.lobbySessionID, false));
     }
 
+    public void OnExternalPortalEnter(SharedSpacesExternalPortal portal)
+    {
+        var options = new ApplicationOptions();
+        // only add deeplink message if it's set
+        if (!string.IsNullOrEmpty(portal.DeepLinkMessage))
+        {
+            options.SetDeeplinkMessage(portal.DeepLinkMessage);
+        }
+        options.SetDestinationApiName(portal.DestinationAPI);
+        // We join the same session reference in the application
+        options.SetLobbySessionId(groupPresenceState.lobbySessionID);
+        options.SetMatchSessionId(groupPresenceState.matchSessionID);
+        Oculus.Platform.Application.LaunchOtherApp(portal.ApplicationId, options);
+    }
+
     private string GetPhotonRoomName()
     {
         return groupPresenceState.matchSessionID == ""
