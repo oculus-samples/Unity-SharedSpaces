@@ -224,6 +224,9 @@ public class SharedSpacesApplication : MonoBehaviour
 
             Users.GetLoggedInUser().OnComplete(OnLoggedInUser);
         });
+        
+        // Handle the user clicking the AUI button for reports
+        AbuseReport.SetReportButtonPressedNotificationCallback(OnReportButtonIntentNotif);
     }
 
     private void OnLoggedInUser(Message<Oculus.Platform.Models.User> message)
@@ -239,6 +242,16 @@ public class SharedSpacesApplication : MonoBehaviour
         // Display name is blank.
         // Platform.Users.Get(ulong userID) returns the display name.
         Users.Get(message.Data.ID).OnComplete(LocalPlayerState.Init);
+    }
+    
+    // User has interacted with the AUI report button outside this app
+    private void OnReportButtonIntentNotif(Message<string> message)
+    {
+        if (!message.IsError)
+        {
+            // Inform SDK that we don't handle the request
+            AbuseReport.ReportRequestHandled(ReportRequestResponse.Unhandled);
+        }
     }
 
     private void OnJoinIntentReceived(Message<Oculus.Platform.Models.GroupPresenceJoinIntent> message)

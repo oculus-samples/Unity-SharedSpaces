@@ -285,8 +285,16 @@ In addition to these settings, you need to set __Deeplink Type__ to __Enabled__ 
 
 You will need to request access to platform data needed by SharedSpaces. Under __Data Use Checkup__, add the following items and submit for certification.
 
-+  User ID
-+  User Profile
-+  Deep Linking
-+  Friends
-+  Invites
++ User ID
++ User Profile
++ Deep Linking
++ Friends
++ Invites
+
+## 4. <a id="D3">Setup User Reporting</a>
+
+We implemented the User reporting that is required for all multiplayer applications. We used the unhandled solution that uses the default system, opposite to devs that have their own reporting flow.
+
+The implementation can be found in [SharedSpacesApplication.cs](./Assets/SharedSpaces/Scripts/SharedSpacesApplication.cs#L248-L255).
+
+Here is how to set it up in the dashboard: [Setup User reporting Settings](https://developer.oculus.com/resources/reporting-plugin/)
