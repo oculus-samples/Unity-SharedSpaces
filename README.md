@@ -20,7 +20,7 @@ Then, clone this repo using the "Code" button above, or this command:
 git clone https://github.com/oculus-samples/Unity-SharedSpaces.git
 ```
 
-To run the showcase, open the project folder in *Unity 2021.3.16f1* or newer. Load the [Assets/SharedSpaces/Scenes/Startup](Assets/SharedSpaces/Scenes/Startup.unity) scene.
+To run the showcase, open the project folder in *Unity 2021.3.26f1* or newer. Load the [Assets/SharedSpaces/Scenes/Startup](Assets/SharedSpaces/Scenes/Startup.unity) scene.
 
 After loading the scene, you may encounter this pop-up:
 

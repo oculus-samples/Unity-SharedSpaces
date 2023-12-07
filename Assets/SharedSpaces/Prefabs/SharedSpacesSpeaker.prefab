@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1333224701427259039}
   - component: {fileID: 1333224701427259036}
   - component: {fileID: 1333224701427259037}
-  - component: {fileID: -7709192707357113288}
+  - component: {fileID: 2779191208115086817}
   m_Layer: 0
   m_Name: SharedSpacesSpeaker
   m_TagString: Untagged
@@ -29,6 +29,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -158,7 +159,7 @@ MonoBehaviour:
     MinDelaySoft: 200
     MaxDelaySoft: 400
     MaxDelayHard: 1000
---- !u!114 &-7709192707357113288
+--- !u!114 &2779191208115086817
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -167,14 +168,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1333224701427259034}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e503ea6418d27594caa33b93cac1b06a, type: 3}
+  m_Script: {fileID: 11500000, guid: a07f270ac36c49789466c75ceb88424c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   enableSpatialization: 1
-  gain: 24
-  useInvSqr: 1
-  near: 0.5
-  far: 200
-  volumetricRadius: 0
-  reverbSend: 0
-  enableRfl: 0
+  gainBoostDb: 0
+  enableAcoustics: 1
+  reverbSendDb: 0
