@@ -4,9 +4,7 @@
 
 using System.Collections;
 using UnityEngine;
-#if !UNITY_EDITOR && !UNITY_STANDALONE_WIN
 using Oculus.Platform;
-#endif
 
 public class SharedSpacesGroupPresenceState
 {
@@ -18,7 +16,17 @@ public class SharedSpacesGroupPresenceState
 
     public IEnumerator Set(string dest, string lobbyID, string matchID, bool joinable)
     {
-#if !UNITY_EDITOR && !UNITY_STANDALONE_WIN
+        bool setToPlatform = false;
+        #if !UNITY_EDITOR && !UNITY_STANDALONE_WIN
+            setToPlatform = true;
+        #endif
+        if (PlatformSettings.UseStandalonePlatform)
+        {
+            setToPlatform = true;
+        }
+
+        if (setToPlatform)
+        {
             setError = true;
 
             GroupPresenceOptions groupPresenceOptions = new GroupPresenceOptions();
@@ -48,7 +56,7 @@ public class SharedSpacesGroupPresenceState
                         matchSessionID = matchID;
                         isJoinable = joinable;
                         destination = dest;
-                       
+
                         Debug.Log("Group Presence set successfully");
                         Print();
                     }
@@ -58,16 +66,18 @@ public class SharedSpacesGroupPresenceState
 
                 yield return new WaitUntil(() => setCompleted);
             }
-#else
-        destination = dest;
-        lobbySessionID = lobbyID;
-        matchSessionID = matchID;
-        isJoinable = joinable;
+        }
+        else
+        {
+            destination = dest;
+            lobbySessionID = lobbyID;
+            matchSessionID = matchID;
+            isJoinable = joinable;
 
-        Debug.Log("Group Presence set successfully");
-        Print();
-        yield return null;
-#endif
+            Debug.Log("Group Presence set successfully");
+            Print();
+            yield return null;
+        }
     }
 
     public void Print()
