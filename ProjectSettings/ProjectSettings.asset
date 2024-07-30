@@ -697,10 +697,22 @@ PlayerSettings:
   webGLDecompressionFallback: 0
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Android: CROSS_PLATFORM_INPUT;MOBILE_INPUT
-    Standalone: CROSS_PLATFORM_INPUT
-    Windows Store Apps: MOBILE_INPUT
-    iPhone: CROSS_PLATFORM_INPUT;MOBILE_INPUT
+    Android: CROSS_PLATFORM_INPUT;MOBILE_INPUT;PHOTON_VOICE_DEFINED
+    EmbeddedLinux: PHOTON_VOICE_DEFINED
+    GameCoreScarlett: PHOTON_VOICE_DEFINED
+    GameCoreXboxOne: PHOTON_VOICE_DEFINED
+    LinuxHeadlessSimulation: PHOTON_VOICE_DEFINED
+    Lumin: PHOTON_VOICE_DEFINED
+    Nintendo Switch: PHOTON_VOICE_DEFINED
+    PS4: PHOTON_VOICE_DEFINED
+    PS5: PHOTON_VOICE_DEFINED
+    Stadia: PHOTON_VOICE_DEFINED
+    Standalone: CROSS_PLATFORM_INPUT;PHOTON_VOICE_DEFINED
+    WebGL: PHOTON_VOICE_DEFINED
+    Windows Store Apps: MOBILE_INPUT;PHOTON_VOICE_DEFINED
+    XboxOne: PHOTON_VOICE_DEFINED
+    iPhone: CROSS_PLATFORM_INPUT;MOBILE_INPUT;PHOTON_VOICE_DEFINED
+    tvOS: PHOTON_VOICE_DEFINED
   additionalCompilerArguments:
     Android:
     - -warnaserror:0108
