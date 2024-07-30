@@ -4,7 +4,9 @@
 
 SharedSpaces was built by the VR Developer Tools team to demonstrate how you can quickly get people together in VR using the Oculus Social Platform APIs.  This version was built for the Unity engine using [Photon Realtime](https://github.com/Unity-Technologies/multiplayer-community-contributions/tree/main/Transports/com.community.netcode.transport.photon-realtime) as the transport layer and [Unity Netcode for GameObjects](https://github.com/Unity-Technologies/com.unity.netcode.gameobjects). Other versions are available, in particular one built for the [Unreal Engine](https://github.com/oculus-samples/Unreal-SharedSpaces).
 
-This codebase is available both as a reference and as a template for multiplayer VR games. The [Oculus License](LICENSE) applies to the SDK and supporting material. The MIT License applies to only certain, clearly marked documents. If an individual file does not indicate which license it is subject to, then the Oculus License applies.
+This codebase is available both as a reference and as a template for multiplayer VR games. 
+
+The majority of Shared Spaces is licensed under [MIT LICENSE](./LICENSE), however files from [Photon SDK](./Packages/Photon/Photon/license.txt) are licensed under their respective licensing terms.
 
 See the [CONTRIBUTING](CONTRIBUTING.md) file for how to help out.
 
@@ -41,11 +43,11 @@ Paste your App ID in [Assets/Photon/Resources/PhotonAppSettings](Assets/Photon/R
 
 The Photon Realtime transport should now work. You can check the dashboard in your Photon account to verify there is network traffic.
 
-## Where are the Oculus and Photon packages?
+## Where are the Meta and Photon packages?
 
-In order to keep the project organized, the [Oculus Integration](https://assetstore.unity.com/packages/tools/integration/oculus-integration-82022) and [Photon Voice 2](https://assetstore.unity.com/packages/tools/audio/photon-voice-2-130518) packages are stored in the [Packages](./Packages) folder. To update them, import their updated Asset Store packages, then copy them into their respective `Packages` folders.
+The Meta packages are referenced in the [Packages/manifest.json](./Packages/manifest.json) file, you can update them using the Package Manager within the Unity Editor.
 
-The *Oculus Integration* package is released under the *[Oculus SDK License Agreement](./Packages/Oculus/LICENSE.txt)*.
+In order to keep the project organized, [Photon Voice 2](https://assetstore.unity.com/packages/tools/audio/photon-voice-2-130518) packages is stored in the [Packages](./Packages) folder. To update them, import their updated Asset Store packages, then copy them into their respective `Packages` folders.
 
 The *Photon Voice 2* package is released under the *[License Agreement for Exit Games Photon](./Packages/Photon/Photon/license.txt)*.
 
