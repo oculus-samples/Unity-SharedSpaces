@@ -206,6 +206,13 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.veriorpies.parrelsync": {
+      "version": "https://github.com/brogan89/ParrelSync.git?path=/ParrelSync#develop",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "2607606c9978c48a1b20e7bf8e7ec6b7f8a7a851"
+    },
     "unity-dependencies-hunter": {
       "version": "https://github.com/AlexeyPerov/Unity-Dependencies-Hunter.git#upm",
       "depth": 0,
