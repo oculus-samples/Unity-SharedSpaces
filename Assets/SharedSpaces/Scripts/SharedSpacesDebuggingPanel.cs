@@ -13,6 +13,13 @@ public class SharedSpacesDebuggingPanel : MonoBehaviour
     private void Awake()
     {
         log = FindObjectOfType<SharedSpacesLog>();
-        log.SetDebuggingPanel(this);
+        if (log)
+        {
+            log.SetDebuggingPanel(this);
+        }
+        else
+        {
+            Debug.LogError("No SharedSpacesLog found, this SharedSpacesDebuggingPanel won't show logs.");
+        }
     }
 }
