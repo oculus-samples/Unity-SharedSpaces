@@ -17,37 +17,9 @@ public static class SharedSpacesTelemetry
     {
         Collect();
     }
-
-    [MenuItem("Oculus/Telemetry Settings")]
-    static void TelemetrySettings()
-    {
-        Collect(true);
-    }
-
     static void Collect(bool force = false)
     {
-        const string enabledKey = "OculusTelemetryEnabled";
-        const string privacyPolicyUrl = "https://www.oculus.com/legal/privacy-policy/";
-
-        if (force || EditorPrefs.HasKey(enabledKey) == false)
-        {
-            var response = EditorUtility.DisplayDialogComplex(
-                "Enable Oculus Telemetry",
-                $"Enabling telemetry will transmit data to Oculus about your usage of its samples and tools. This information is used by Oculus to improve our products and better serve our developers. For more information, go to this url: {privacyPolicyUrl}",
-                "Enable",
-                "Opt out",
-                "Open Privacy Policy");
-
-            EditorPrefs.SetBool(enabledKey, response == 0);
-
-            if (response == 2)
-            {
-                EditorPrefs.DeleteKey(enabledKey);
-                EditorUtility.OpenWithDefaultApp(privacyPolicyUrl);
-            }
-        }
-
-        if (EditorPrefs.GetBool(enabledKey) && SessionState.GetBool("OculusTelemetry-module_loaded-SharedSpaces", false) == false)
+        if (SessionState.GetBool("OculusTelemetry-module_loaded-SharedSpaces", false) == false)
         {
             OVRPlugin.SetDeveloperMode(OVRPlugin.Bool.True);
             OVRPlugin.SendEvent("module_loaded", "Unity-SharedSpaces", "integration");
