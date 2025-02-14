@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "com.meta.xr.sdk.audio": "67.0.0",
-    "com.meta.xr.sdk.core": "67.0.0",
-    "com.meta.xr.sdk.platform": "67.0.0",
-    "com.meta.xr.simulator": "66.0.1",
+    "com.meta.xr.sdk.audio": "72.0.0",
+    "com.meta.xr.sdk.core": "72.0.0",
+    "com.meta.xr.sdk.platform": "72.0.0",
+    "com.meta.xr.simulator": "72.0.0",
     "com.unity.ai.navigation": "1.1.5",
     "com.unity.collections": "1.2.4",
     "com.unity.ide.rider": "3.0.34",
