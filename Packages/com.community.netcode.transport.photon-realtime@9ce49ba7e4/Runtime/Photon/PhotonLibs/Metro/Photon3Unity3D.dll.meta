@@ -12,12 +12,12 @@ PluginImporter:
   validateReferences: 1
   platformData:
   - first:
-      '': Any
+      : Any
     second:
       enabled: 1
       settings: {}
   - first:
-      '': WP8
+      : WP8
     second:
       enabled: 1
       settings:

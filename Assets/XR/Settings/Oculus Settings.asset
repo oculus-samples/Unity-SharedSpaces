@@ -27,7 +27,9 @@ MonoBehaviour:
   LateLatchingDebug: 0
   EnableTrackingOriginStageMode: 0
   SpaceWarp: 0
-  TargetQuest: 1
   TargetQuest2: 1
   TargetQuestPro: 1
+  TargetQuest3: 0
+  TargetQuest3S: 0
   SystemSplashScreen: {fileID: 2800000, guid: c6a666b57827fba4c8de06a28ca70956, type: 3}
+  UseStickControlThumbsticks: 0

@@ -24,12 +24,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4746195689920984494}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -15.347343, y: -5.5403733, z: 6.93595}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4746195689920984489
 MonoBehaviour:
@@ -47,4 +48,3 @@ MonoBehaviour:
   sceneLoader: {fileID: 0}
   spawner: {fileID: 0}
   voip: {fileID: 0}
-  localPlayerState: {fileID: 0}

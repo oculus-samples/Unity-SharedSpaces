@@ -4,7 +4,7 @@
 
 SharedSpaces was built by the VR Developer Tools team to demonstrate how you can quickly get people together in VR using the Oculus Social Platform APIs.  This version was built for the Unity engine using [Photon Realtime](https://github.com/Unity-Technologies/multiplayer-community-contributions/tree/main/Transports/com.community.netcode.transport.photon-realtime) as the transport layer and [Unity Netcode for GameObjects](https://github.com/Unity-Technologies/com.unity.netcode.gameobjects). Other versions are available, in particular one built for the [Unreal Engine](https://github.com/oculus-samples/Unreal-SharedSpaces).
 
-This codebase is available both as a reference and as a template for multiplayer VR games. 
+This codebase is available both as a reference and as a template for multiplayer VR games.
 
 The majority of Shared Spaces is licensed under [MIT LICENSE](./LICENSE), however files from [Photon SDK](./Packages/Photon/Photon/license.txt) are licensed under their respective licensing terms.
 
@@ -22,7 +22,7 @@ Then, clone this repo using the "Code" button above, or this command:
 git clone https://github.com/oculus-samples/Unity-SharedSpaces.git
 ```
 
-To run the showcase, open the project folder in *Unity 2021.3.26f1* or newer. Load the [Assets/SharedSpaces/Scenes/Startup](Assets/SharedSpaces/Scenes/Startup.unity) scene.
+To run the showcase, open the project folder in *Unity 2022.3.52f1* or newer. Load the [Assets/SharedSpaces/Scenes/Startup](Assets/SharedSpaces/Scenes/Startup.unity) scene.
 
 After loading the scene, you may encounter this pop-up:
 
@@ -117,7 +117,7 @@ Members of your group are free to travel at any time between your lobby and thei
 
 <div style="text-align: center; padding: 10pt;"><img src="./Media/invitation_to_match.png" align="middle" width="700"></div>
 
-You can also grant access to your private match to anyone.  You invite them from that match, and they join you when they accept the invitation.  In SharedSpaces, accepting an invitation to a match only affects your match session id, not your lobby session id.  
+You can also grant access to your private match to anyone.  You invite them from that match, and they join you when they accept the invitation.  In SharedSpaces, accepting an invitation to a match only affects your match session id, not your lobby session id.
 
 <div style="text-align: center; padding: 10pt;"><img src="./Media/respective_lobbies.png" align="middle" width="650"></div>
 
