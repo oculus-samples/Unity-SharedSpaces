@@ -64,6 +64,9 @@ B. <a href="#B">SharedSpaces in Action</a><br/>
 C. <a href="#C">Oculus Application Configuration</a><br/>
 &nbsp;&nbsp;&nbsp;1. <a href="#C1">Application Identifier</a><br/>
 &nbsp;&nbsp;&nbsp;2. <a href="#C2">Destinations</a><br/>
+&nbsp;&nbsp;&nbsp;3. <a href="#C3">Data Use Checkup</a><br/>
+&nbsp;&nbsp;&nbsp;4. <a href="#C4">Upload to Release Channel</a><br/>
+&nbsp;&nbsp;&nbsp;5. <a href="#C5">Setup User Reporting</a><br/>
 </td>
 </tr>
 </table>
@@ -103,7 +106,7 @@ SharedSpaces is made of a few connected levels, known as destinations.  In the c
 
 We use this layout as a direct representation of the new group presence apis.  To get you to a SharedSpaces destination, we first set your destination and a pair of session identifiers in your group presence: one for your lobby session id, which should not change very often, and one for your match session id, only set when you join a match.
 
-The destinations are specific areas of your application that are defined on the [Oculus dashboard](https://developer.oculus.com/manage) under **Platform Services > Destinations**. The lobby session id represents a tight group of people that want to stay together between games and possibly play as part of the same team during matches.  The match session id is shared by people currently playing a match together, whether they are on the same team or not.
+The destinations are specific areas of your application that are defined on the [Oculus dashboard](https://developers.meta.com/horizon/manage/) under **Platform Services > Destinations**. The lobby session id represents a tight group of people that want to stay together between games and possibly play as part of the same team during matches.  The match session id is shared by people currently playing a match together, whether they are on the same team or not.
 
 <div style="text-align: center; padding: 10pt;"><img src="./Media/invitation_to_lobby.png" align="middle" width="600"></div>
 
@@ -241,7 +244,7 @@ To have Charlie join their group, Alice or Bob simply need to send him an invita
 
 # C. <a id="C">Oculus Application Configuration</a>
 
-To build and run your own copy of SharedSpaces, you will need to create an application for it on the [Oculus developer dashboard](https://developer.oculus.com/).
+To build and run your own copy of SharedSpaces, you will need to create an application for it on the [Oculus developer dashboard](https://developers.meta.com/horizon/).
 
 ## 1. <a id="C1">Application Identifier</a>
 
@@ -249,7 +252,7 @@ To build and run your own copy of SharedSpaces, you will need to create an appli
 	<img src="./Media/dashboard/dashboard_app.png"  width="800">
 </div>
 
-You Oculus application identfier must be placed in [Assets/Resources/OculusPlatformSettings.asset](Assets/Resources/OculusPlatformSettings.asset).
+You Oculus application identfier must be' placed in [Assets/Resources/OculusPlatformSettings.asset](Assets/Resources/OculusPlatformSettings.asset).
 
 The identifier (__App ID__) can be found in the _API_ section.
 
@@ -283,7 +286,7 @@ SharedSpaces has five destinations: a Lobby, three private rooms (the red, green
 
 In addition to these settings, you need to set __Deeplink Type__ to __Enabled__ and add an image for your destination.  In the case of SharedSpaces, the destination is __Audience__ is set to __Everyone__. Also make sure to set the max group launch capacity for each destination so that the group launch feature can be used.
 
-## 3. <a id="D3">Data Use Checkup</a>
+## 3. <a id="C3">Data Use Checkup</a>
 
 You will need to request access to platform data needed by SharedSpaces. Under __Data Use Checkup__, add the following items and submit for certification.
 
@@ -293,10 +296,45 @@ You will need to request access to platform data needed by SharedSpaces. Under _
 + Friends
 + Invites
 
-## 4. <a id="D3">Setup User Reporting</a>
+## 4. <a id="C4">Upload to Release Channel</a>
+To use the platform features, you will first need to upload an initial build to a release channel.
+
+<div style="text-align: center; padding: 10pt;">
+	<img src="./Media/DeveloperHub.png"  width="800">
+</div>
+
+After that, package your project, open the Meta Developer Hub app,
+go to App Distrbution and find your created app.
+Choose one of the the Release Channels and press Upload.
+
+Once your build is uploaded you will see it on the
+Oculus Developer Dashboard website under Distribution -> Release Channels.
+
+Once all of the tests pass, go to Distribution -> Release Channels
+then click on the release channel you uploaded your build to.
+Go to Users then click Email Invite Users. Invite all the users that you to access the app.
+
+You must use emails that
+are assoicated with quest devices for the devices to be able to download the app
+and pass the entitlement check. If they aren't invited the oculus platform
+will not work correctly.
+
+If everything was done correctly, you should see the app in your app library on your quest device
+and have the ability to download and install it.
+Once this is all finished you can upload a development or shipping build to your device directly
+and the entitlement check will always pass.
+
+Everytime you upload a new build you need to delete the app data on your Quest device before launching the app.
+This is done by going to the Settings -> Storage, find your app and then Delete App Data.
+
+Then to be able to test with other users you will need to add them to the channel, more information in the [Add Users to Release Channel](https://developers.meta.com/horizon/resources/publish-release-channels-add-users/) topic.
+
+Once the initial build is uploaded you will be able to use any development build with the same application Id, no need to upload every build to test local changes.
+
+## 5. <a id="C5">Setup User Reporting</a>
 
 We implemented the User reporting that is required for all multiplayer applications. We used the unhandled solution that uses the default system, opposite to devs that have their own reporting flow.
 
 The implementation can be found in [SharedSpacesApplication.cs](./Assets/SharedSpaces/Scripts/SharedSpacesApplication.cs#L248-L255).
 
-Here is how to set it up in the dashboard: [Setup User reporting Settings](https://developer.oculus.com/resources/reporting-plugin/)
+Here is how to set it up in the dashboard: [Setup User reporting Settings](https://developers.meta.com/horizon/resources/reporting-plugin/)
