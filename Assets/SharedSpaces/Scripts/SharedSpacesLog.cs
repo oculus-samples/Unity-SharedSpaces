@@ -3,9 +3,11 @@
 // https://github.com/oculus-samples/Unity-SharedSpaces/tree/main/Assets/SharedSpaces/LICENSE
 
 using System.Collections.Generic;
+using Meta.XR.Samples;
 using UnityEngine;
 using TMPro;
 
+[MetaCodeSample("SharedSpaces")]
 public class SharedSpacesLog : MonoBehaviour
 {
     private const int MAX_CONSOLE_LINES = 35;

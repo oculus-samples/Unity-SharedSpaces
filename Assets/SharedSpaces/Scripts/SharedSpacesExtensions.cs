@@ -2,8 +2,10 @@
 // Use of the material below is subject to the terms of the MIT License
 // https://github.com/oculus-samples/Unity-SharedSpaces/tree/main/Assets/SharedSpaces/LICENSE
 
+using Meta.XR.Samples;
 using UnityEngine;
 
+[MetaCodeSample("SharedSpaces")]
 public class Singleton<T> : MonoBehaviour where T : Singleton<T>
 {
     public static T Instance { get; private set; }
@@ -15,6 +17,7 @@ public class Singleton<T> : MonoBehaviour where T : Singleton<T>
     }
 }
 
+[MetaCodeSample("SharedSpaces")]
 public static class SharedSpacesExtensions
 {
     public static bool IsCloseTo(this float a, float b, float epsilon = 0.0001f)

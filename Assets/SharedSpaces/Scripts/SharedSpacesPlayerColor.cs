@@ -2,8 +2,10 @@
 // Use of the material below is subject to the terms of the MIT License
 // https://github.com/oculus-samples/Unity-SharedSpaces/tree/main/Assets/SharedSpaces/LICENSE
 
+using Meta.XR.Samples;
 using UnityEngine;
 
+[MetaCodeSample("SharedSpaces")]
 public class SharedSpacesPlayerColor : MonoBehaviour
 {
     [SerializeField]

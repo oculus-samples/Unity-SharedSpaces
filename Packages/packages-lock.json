@@ -7,21 +7,21 @@
       "dependencies": {}
     },
     "com.meta.xr.sdk.audio": {
-      "version": "72.0.0",
+      "version": "77.0.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.meta.xr.sdk.core": {
-      "version": "72.0.0",
+      "version": "77.0.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.meta.xr.sdk.platform": {
-      "version": "72.0.0",
+      "version": "77.0.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -30,12 +30,10 @@
       "url": "https://packages.unity.com"
     },
     "com.meta.xr.simulator": {
-      "version": "72.0.0",
+      "version": "77.0.0",
       "depth": 0,
       "source": "registry",
-      "dependencies": {
-        "com.unity.editorcoroutines": "1.0.0"
-      },
+      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.photon.voice2": {
@@ -71,13 +69,6 @@
         "com.unity.burst": "1.6.6",
         "com.unity.test-framework": "1.1.31"
       },
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.editorcoroutines": {
-      "version": "1.0.0",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.ext.nunit": {
@@ -211,6 +202,15 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
+    "com.unity.xr.core-utils": {
+      "version": "2.3.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.xr": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.xr.legacyinputhelpers": {
       "version": "2.1.11",
       "depth": 1,
@@ -233,12 +233,15 @@
       },
       "url": "https://packages.unity.com"
     },
-    "com.unity.xr.oculus": {
-      "version": "4.4.0",
+    "com.unity.xr.openxr": {
+      "version": "1.14.3",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.xr.management": "4.4.0"
+        "com.unity.inputsystem": "1.6.3",
+        "com.unity.xr.core-utils": "2.3.0",
+        "com.unity.xr.management": "4.4.0",
+        "com.unity.xr.legacyinputhelpers": "2.1.2"
       },
       "url": "https://packages.unity.com"
     },

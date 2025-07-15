@@ -2,6 +2,7 @@
 // Use of the material below is subject to the terms of the MIT License
 // https://github.com/oculus-samples/Unity-SharedSpaces/tree/main/Assets/SharedSpaces/LICENSE
 
+using Meta.XR.Samples;
 using Unity.Netcode.Components;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ using UnityEngine;
 /// Taken from: https://github.com/Unity-Technologies/com.unity.multiplayer.samples.coop/blob/main/Packages/com.unity.multiplayer.samples.coop/Utilities/Net/ClientAuthority/ClientNetworkTransform.cs
 /// </summary>
 [DisallowMultipleComponent]
+[MetaCodeSample("SharedSpaces")]
 public class ClientNetworkTransform : NetworkTransform
 {
     /// <summary>

@@ -3,9 +3,11 @@
 // https://github.com/oculus-samples/Unity-SharedSpaces/tree/main/Assets/SharedSpaces/LICENSE
 
 using System;
+using Meta.XR.Samples;
 using UnityEngine;
 using Unity.Netcode;
 
+[MetaCodeSample("SharedSpaces")]
 public class SharedSpacesExternalPortal : MonoBehaviour
 {
     private SharedSpacesApplication application;

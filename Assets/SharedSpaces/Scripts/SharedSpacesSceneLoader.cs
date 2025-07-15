@@ -3,9 +3,11 @@
 // https://github.com/oculus-samples/Unity-SharedSpaces/tree/main/Assets/SharedSpaces/LICENSE
 
 using System.Collections.Generic;
+using Meta.XR.Samples;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+[MetaCodeSample("SharedSpaces")]
 public class SharedSpacesSceneLoader : MonoBehaviour
 {
     public enum Scenes

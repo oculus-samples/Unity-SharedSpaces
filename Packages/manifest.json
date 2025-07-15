@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "com.meta.xr.sdk.audio": "72.0.0",
-    "com.meta.xr.sdk.core": "72.0.0",
-    "com.meta.xr.sdk.platform": "72.0.0",
-    "com.meta.xr.simulator": "72.0.0",
+    "com.meta.xr.sdk.audio": "77.0.0",
+    "com.meta.xr.sdk.core": "77.0.0",
+    "com.meta.xr.sdk.platform": "77.0.0",
+    "com.meta.xr.simulator": "77.0.0",
     "com.unity.ai.navigation": "1.1.5",
     "com.unity.collections": "1.2.4",
     "com.unity.ide.rider": "3.0.34",
@@ -16,7 +16,7 @@
     "com.unity.toolchain.win-x86_64-linux-x86_64": "2.0.10",
     "com.unity.ugui": "1.0.0",
     "com.unity.xr.management": "4.4.0",
-    "com.unity.xr.oculus": "4.4.0",
+    "com.unity.xr.openxr": "1.14.3",
     "com.veriorpies.parrelsync": "https://github.com/brogan89/ParrelSync.git?path=/ParrelSync#develop",
     "unity-dependencies-hunter": "https://github.com/AlexeyPerov/Unity-Dependencies-Hunter.git#upm",
     "com.unity.modules.ai": "1.0.0",

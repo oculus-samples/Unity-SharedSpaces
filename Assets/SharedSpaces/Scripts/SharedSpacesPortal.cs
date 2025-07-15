@@ -2,10 +2,12 @@
 // Use of the material below is subject to the terms of the MIT License
 // https://github.com/oculus-samples/Unity-SharedSpaces/tree/main/Assets/SharedSpaces/LICENSE
 
+using Meta.XR.Samples;
 using UnityEngine;
 using TMPro;
 using Unity.Netcode;
 
+[MetaCodeSample("SharedSpaces")]
 public class SharedSpacesPortal : MonoBehaviour
 {
     public TMP_Text room;

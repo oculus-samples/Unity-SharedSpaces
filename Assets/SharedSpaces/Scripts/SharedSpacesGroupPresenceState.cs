@@ -3,9 +3,11 @@
 // https://github.com/oculus-samples/Unity-SharedSpaces/tree/main/Assets/SharedSpaces/LICENSE
 
 using System.Collections;
+using Meta.XR.Samples;
 using UnityEngine;
 using Oculus.Platform;
 
+[MetaCodeSample("SharedSpaces")]
 public class SharedSpacesGroupPresenceState
 {
     public string destination { get; private set; }

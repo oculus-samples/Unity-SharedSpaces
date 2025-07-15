@@ -3,9 +3,11 @@
 // https://github.com/oculus-samples/Unity-SharedSpaces/tree/main/Assets/SharedSpaces/LICENSE
 
 using System.Collections;
+using Meta.XR.Samples;
 using UnityEngine;
 using Unity.Netcode;
 
+[MetaCodeSample("SharedSpaces")]
 public class SharedSpacesSession : NetworkBehaviour
 {
     public static ulong fallbackHostId { get; private set; }

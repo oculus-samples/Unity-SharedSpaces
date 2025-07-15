@@ -10,8 +10,10 @@ using Unity.Netcode;
 using Netcode.Transports.PhotonRealtime;
 using Photon.Realtime;
 using System.Net.WebSockets;
+using Meta.XR.Samples;
 
 [RequireComponent(typeof(PhotonRealtimeTransport))]
+[MetaCodeSample("SharedSpaces")]
 public class SharedSpacesNetworkLayer : MonoBehaviour, IConnectionCallbacks, IInRoomCallbacks
 {
     public enum ClientState

@@ -2,9 +2,11 @@
 // Use of the material below is subject to the terms of the MIT License
 // https://github.com/oculus-samples/Unity-SharedSpaces/tree/main/Assets/SharedSpaces/LICENSE
 
+using Meta.XR.Samples;
 using UnityEngine;
 using Oculus.Platform;
 
+[MetaCodeSample("SharedSpaces")]
 public class SharedSpacesLocalPlayerState : Singleton<SharedSpacesLocalPlayerState>
 {
     public SharedSpacesCamera playerCamera;

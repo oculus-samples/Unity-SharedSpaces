@@ -6,9 +6,11 @@ using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
+using Meta.XR.Samples;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerInput))]
+[MetaCodeSample("SharedSpaces")]
 public class SharedSpacesPlayerController : NetworkBehaviour
 {
     [Header("Player")]

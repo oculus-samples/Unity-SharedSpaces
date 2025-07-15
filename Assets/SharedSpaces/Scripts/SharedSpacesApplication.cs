@@ -5,12 +5,14 @@
 using Unity.Netcode;
 using Oculus.Platform;
 using System.Collections;
+using Meta.XR.Samples;
 using UnityEngine;
 
 #if UNITY_EDITOR
 using UnityEditor;
 
 [InitializeOnLoad]
+[MetaCodeSample("SharedSpaces")]
 public static class SharedSpacesTelemetry
 {
     static SharedSpacesTelemetry()
@@ -29,6 +31,7 @@ public static class SharedSpacesTelemetry
 }
 #endif
 
+[MetaCodeSample("SharedSpaces")]
 public class SharedSpacesApplication : MonoBehaviour
 {
 

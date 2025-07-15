@@ -144,8 +144,6 @@ PlayerSettings:
   preloadedAssets:
   - {fileID: 11400000, guid: 3373e5edd43cb824581b7369d30b673d, type: 2}
   - {fileID: 11400000, guid: 31617391d8a34d24981ec6aff26cd922, type: 2}
-  - {fileID: 11400000, guid: 795ffafb602dfed43930c9717cafb655, type: 2}
-  - {fileID: 9063536110420965024, guid: eb1fb9be53949b94982164119889ba87, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -175,8 +173,8 @@ PlayerSettings:
     tvOS: 0
   overrideDefaultApplicationIdentifier: 1
   AndroidBundleVersionCode: 4
-  AndroidMinSdkVersion: 29
-  AndroidTargetSdkVersion: 0
+  AndroidMinSdkVersion: 32
+  AndroidTargetSdkVersion: 32
   AndroidPreferredInstallLocation: 0
   aotOptions: 
   stripEngineCode: 1
@@ -424,7 +422,7 @@ PlayerSettings:
   - m_BuildTarget: LuminSupport
     m_GraphicsJobs: 0
   - m_BuildTarget: AndroidPlayer
-    m_GraphicsJobs: 0
+    m_GraphicsJobs: 1
   - m_BuildTarget: WebGLSupport
     m_GraphicsJobs: 0
   m_BuildTargetGraphicsJobMode:
@@ -432,6 +430,8 @@ PlayerSettings:
     m_GraphicsJobMode: 0
   - m_BuildTarget: XboxOnePlayer
     m_GraphicsJobMode: 0
+  - m_BuildTarget: AndroidPlayer
+    m_GraphicsJobMode: 1
   m_BuildTargetGraphicsAPIs:
   - m_BuildTarget: AndroidPlayer
     m_APIs: 15000000
@@ -728,7 +728,7 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Android: CROSS_PLATFORM_INPUT;MOBILE_INPUT;PHOTON_VOICE_DEFINED
+    Android: CROSS_PLATFORM_INPUT;MOBILE_INPUT;PHOTON_VOICE_DEFINED;USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS
     EmbeddedLinux: PHOTON_VOICE_DEFINED
     GameCoreScarlett: PHOTON_VOICE_DEFINED
     GameCoreXboxOne: PHOTON_VOICE_DEFINED
@@ -739,10 +739,10 @@ PlayerSettings:
     PS5: PHOTON_VOICE_DEFINED
     QNX: PHOTON_VOICE_DEFINED
     Stadia: PHOTON_VOICE_DEFINED
-    Standalone: CROSS_PLATFORM_INPUT;PHOTON_VOICE_DEFINED
+    Standalone: CROSS_PLATFORM_INPUT;PHOTON_VOICE_DEFINED;USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS
     VisionOS: PHOTON_VOICE_DEFINED
     WebGL: PHOTON_VOICE_DEFINED
-    Windows Store Apps: MOBILE_INPUT;PHOTON_VOICE_DEFINED
+    Windows Store Apps: MOBILE_INPUT;PHOTON_VOICE_DEFINED;USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS
     XboxOne: PHOTON_VOICE_DEFINED
     iPhone: CROSS_PLATFORM_INPUT;MOBILE_INPUT;PHOTON_VOICE_DEFINED
     tvOS: PHOTON_VOICE_DEFINED

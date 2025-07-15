@@ -11,7 +11,9 @@ using Unity.Netcode;
 using Photon.Voice.Unity;
 using Photon.Voice.Unity.UtilityScripts;
 using System.Linq;
+using Meta.XR.Samples;
 
+[MetaCodeSample("SharedSpaces")]
 public class SharedSpacesVoip : MonoBehaviour
 {
     public GameObject sharedSpacesSpeakerPrefab;
